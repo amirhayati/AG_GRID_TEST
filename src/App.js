@@ -24,7 +24,7 @@ const Home = () => {
           const jsonData = JSON.parse(e.target.result);
 
           if (jsonData.Entity && jsonData.Entity.columns) {
-            
+            console.log(jsonData.Entity.columns)
             // ------ Map columns to AG Grid format ---------
             const columns = jsonData.Entity.columns.map((col) => ({
               headerName: col.title || col.field,
@@ -32,9 +32,18 @@ const Home = () => {
               sortable: col.sortable || false,
               lockPosition: col.align,
               lockVisible: col.IsVisible,
-              filter: true,
               width: col.width,
               cellClass: col.cellClass || '',
+              filter: 
+                col.ColumnType === 3 || col.ColumnType === 4 || ["3", "4"].includes(String(col.ColumnType)) 
+                  ? 'agTextColumnFilter' 
+                  : (col.ColumnType >= 5 && col.ColumnType <= 12) || ["5", "6", "7", "8", "9", "10", "11", "12"].includes(String(col.ColumnType)) 
+                  ? 'agNumberColumnFilter' 
+                  : col.ColumnType === 16 || col.ColumnType === 24 || ["16", "24"].includes(String(col.ColumnType))  
+                  ? 'agDateColumnFilter' 
+                  : col.ColumnType === 2 || ["2"].includes(String(col.ColumnType))
+                  ? 'agSetColumnFilter'
+                  : false,
             }));
 
             console.log(columns)
