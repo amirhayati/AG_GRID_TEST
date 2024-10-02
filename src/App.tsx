@@ -39,6 +39,7 @@ const Home: React.FC = () => {
                 minWidth: col.width,
                 cellClass: col.cellClass || '',
                 floatingFilter: true,
+                order: col.sortOrder || null,
                 filter: 
                   col.ColumnType === 3 || col.ColumnType === 4 || ["3", "4"].includes(String(col.ColumnType)) 
                     ? 'agTextColumnFilter' 
@@ -70,7 +71,6 @@ const Home: React.FC = () => {
   const defaultColDef = useMemo(() => {
     return {
       flex: 1,
-      // floatingFilter: true,
       minWidth: 150,
     };
   }, []);
