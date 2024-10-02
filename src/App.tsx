@@ -36,6 +36,7 @@ const Home: React.FC = () => {
               lockVisible: col.IsVisible,
               width: col.width,
               cellClass: col.cellClass || '',
+              floatingFilter: true,
               filter: 
                 col.ColumnType === 3 || col.ColumnType === 4 || ["3", "4"].includes(String(col.ColumnType)) 
                   ? 'agTextColumnFilter' 
