@@ -3,10 +3,11 @@ import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
-import { ColumnDataType } from './type/type';
+import { ColumnDataType, EntityListType } from './type/type';
 
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnDataType[]>([]);
+  const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData] = useState<any[]>([]);
 
   // ------ handle upload file ---------
@@ -25,18 +26,19 @@ const Home: React.FC = () => {
           const jsonData = JSON.parse(e.target?.result as string);
 
           if (jsonData.Entity && jsonData.Entity.columns) {
+            setEntityData(jsonData.Entity)
+
             console.log(jsonData.Entity.columns)
             // ------ Map columns to AG Grid format ---------
             const columns = jsonData.Entity.columns
-              .filter((col: ColumnDataType) => col.IsVisible)
+              .filter((col: ColumnDataType) => col.IsVisible === true)
               .map((col: ColumnDataType) => ({
                 headerName: col.title || col.field,
                 field: col.field,
                 sortable: col.sortable || false,
                 align: col.align || "center",
-                lockPosition: col.align,
-                lockVisible: col.IsVisible,
                 minWidth: col.width,
+                lockPosition: !entityData?.dragableColumn, // Dragable Column
                 cellClass: col.cellClass || '',
                 floatingFilter: true,
                 order: col.OrderId || null,
@@ -71,10 +73,9 @@ const Home: React.FC = () => {
   const defaultColDef = useMemo(() => {
     return {
       flex: 1,
-      minWidth: 150,
     };
   }, []);
-
+  
   return (
     <>
       <input 
