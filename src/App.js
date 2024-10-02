@@ -1,64 +1,88 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
-import data from './Datagrid_Josn.json';
-import axios from 'axios';
 
 const Home = () => {
-  const [columnData, setColumnData] = useState([{}]);
-  const [rowData, setRowData] = useState();
+  const [columnData, setColumnData] = useState([]);
+  const [rowData] = useState([]);
 
-  
-  useEffect(() => {
-    const columns = data.Entity.columns.map((col) => ({
-      headerName: col.title || col.field, 
-      field: col.field,                   
-      sortable: col.sortable || false,  
-      lockPosition: col.align,  
-      lockVisible: col.IsVisible,
-      filter: true,                       
-      width: col.width || 100,           
-      cellClass: col.cellClass || '',  
-      // valueFormatter: (params) => `£ ${params.value}`,   
-    }));
+  // ------ handle upload file ---------
+  const handleFileUpload = (event) => {
+    if (!event || !event.target || !event.target.files) {
+      console.error("No file selected or event object is undefined");
+      return; 
+    }
 
-    console.log(columnData)
-    setColumnData(columns);
-  }, []);
+    const file = event.target.files[0]; 
+    if (file) {
+      const reader = new FileReader();
 
-  useEffect(() => {
-    axios.get(`https://www.ag-grid.com/example-assets/olympic-winners.json`)
-    .then((response) => {
-      setRowData(response.data);
-    })
-    .catch((error) => {
-      console.error('Error fetching data:', error);
-    });
-  }, []);
+      reader.onload = (e) => {
+        try {
+          const jsonData = JSON.parse(e.target.result);
+
+          if (jsonData.Entity && jsonData.Entity.columns) {
+            
+            // ------ Map columns to AG Grid format ---------
+            const columns = jsonData.Entity.columns.map((col) => ({
+              headerName: col.title || col.field,
+              field: col.field,
+              sortable: col.sortable || false,
+              lockPosition: col.align,
+              lockVisible: col.IsVisible,
+              filter: true,
+              width: col.width,
+              cellClass: col.cellClass || '',
+            }));
+
+            console.log(columns)
+            setColumnData(columns);
+          } else {
+            console.error('Invalid JSON structure');
+          }
+        } catch (error) {
+          console.error('Error parsing JSON:', error);
+        }
+      };
+
+      reader.readAsText(file);
+    } else {
+      console.error("File is not selected");
+    }
+  };
 
   const defaultColDef = useMemo(() => {
     return {
       flex: 1,
-      floatingFilter: true,
+      // floatingFilter: true,
+      minWidth: 150,
     };
   }, []);
 
   return (
-    <div 
-      style={{width:'100wh', height:'100vh'}}
-      className={`ag-theme-quartz`}
-    >
-      <AgGridReact
-        rowData={rowData}
-        columnDefs={columnData}
-        pagination={data.Entity.pagination}
-        localeText={AG_GRID_LOCALE_IR}
-        defaultColDef={defaultColDef}
-        pivotMode={true}
+    <>
+      <input 
+        type="file" 
+        accept=".json, .txt" 
+        onChange={handleFileUpload} 
       />
-    </div>
+
+      <div 
+        style={{width:'100wh', height:'98vh'}}
+        className={`ag-theme-quartz`}
+      >
+        <AgGridReact
+          rowData={rowData}
+          columnDefs={columnData}
+          pagination={true}
+          localeText={AG_GRID_LOCALE_IR}
+          defaultColDef={defaultColDef}
+          pivotMode={false}
+        />
+      </div>
+    </>
   );
 }
 
