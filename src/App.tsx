@@ -34,7 +34,7 @@ const Home: React.FC = () => {
               align: col.align || "center",
               lockPosition: col.align,
               lockVisible: col.IsVisible,
-              width: col.width,
+              minWidth: col.width,
               cellClass: col.cellClass || '',
               floatingFilter: true,
               filter: 
