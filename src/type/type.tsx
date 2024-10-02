@@ -8,5 +8,5 @@ export interface ColumnDataType {
     width: number;
     cellClass: string;
     ColumnType?: number | string;
-    sortOrder: number
+    OrderId: number
 }
