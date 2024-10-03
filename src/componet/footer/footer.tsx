@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
+import { FiRefreshCcw } from "react-icons/fi";
 
 import { FooterType } from '../../type/type';
 
@@ -40,12 +41,12 @@ const Footer = ({
     // const paginatedData = rowData.slice(startRow, endRow);
 
     return (
-        <div className="flex flex-row items-center justify-between p-4 gap-4 border-[1px] border-t-0 border-t-gray-400 rounded-b-[5px] text-sm">
+        <div className="flex flex-row items-center justify-between p-2 px-4 gap-4 border-[1px] border-t-0 border-t-gray-400 rounded-b-[5px] text-sm">
           {/* Footer Left Side */}
           <div className='flex gap-8'>
             {/* Page size selector */}
             <div>
-                {/* <label style={{ marginRight: '10px' }}>Page Size:</label> */}
+                {/* <label>Page Size:</label> */}
                 <select value={pageSize} onChange={handlePageSizeChange} className='border-2 px-1 py-1 min-w-12 rounded-md'>
                   {
                     pageSizeValue.map((item)=>(
@@ -57,25 +58,23 @@ const Footer = ({
 
             {/* Custom pagination controls */}
             <div className='flex flex-row items-center'>
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                  <GrFormPrevious color={currentPage === 1 ? '#000' : '#aaa'} size={18}/>
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                  <GrFormPrevious color={currentPage === totalPages ? '#000' : '#aaa'} size={18}/>
                 </button>
-                <span style={{ margin: '0 10px' }}>
+                <span className='mx-3'>
                   صفحه  {totalPages} از {currentPage}
                 </span>
-                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                  <GrFormNext color={currentPage === totalPages ? '#000' : '#aaa'} size={18}/>
+                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                  <GrFormNext color={currentPage === 1 ? '#000' : '#aaa'} size={18}/>
                 </button>
             </div>
           </div>
 
           {/* Footer Right Side */}
           <div className='flex gap-8'>
-            <div>
-                <button onClick={refreshData} style={{ padding: '5px 10px' }}>
-                Refresh
-                </button>
-            </div>
+              <button onClick={refreshData} className='p-2 rounded-md hover:bg-gray-200'>
+                <FiRefreshCcw />
+              </button>
           </div>
         </div>
     )
