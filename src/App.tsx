@@ -78,6 +78,15 @@ const Home: React.FC = () => {
     };
   }, []);
 
+  // Refresh Row Data
+  const [startRow, setStartRow] = useState<number>(0);
+  const [endRow, setEndRow] = useState<number>(0);
+  const handleRowChange = (start: number, end: number) => {
+    setStartRow(start);
+    setEndRow(end);
+  };
+  const paginatedData = rowData.slice(startRow, endRow);
+
  // Fetch data & update rowData state
   useEffect(() => {
     fetch('https://www.ag-grid.com/example-assets/space-mission-data.json') 
@@ -98,7 +107,7 @@ const Home: React.FC = () => {
         className={`ag-theme-quartz`}
       >
         <AgGridReact
-          rowData={rowData}
+          rowData={paginatedData}
           columnDefs={columnData}
           pagination={false} // Disable AG Grid pagination since we are using custom pagination
           localeText={AG_GRID_LOCALE_IR}
@@ -109,12 +118,12 @@ const Home: React.FC = () => {
 
       {/* Custom Footer */}
       <Footer 
-        defaultRow={2}
         rowLength={rowData.length}
+        onRowChange={handleRowChange} 
         arrayOfPageSiteValue={[
-          {val: 2},
-          {val: 4},
-          {val: 8},
+          {val: 20},
+          {val: 40},
+          {val: 80},
         ]}
       />
     </>

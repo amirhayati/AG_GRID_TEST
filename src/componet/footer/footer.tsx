@@ -6,20 +6,19 @@ import { FooterType } from '../../type/type';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 
 const Footer = ({
-    defaultRow, //Default Number Of page size
     rowLength,  //Row Length
+    onRowChange, //Pass Start Row And End Row To Parent Component
     arrayOfPageSiteValue  //Page Size Value
     }: FooterType) => {
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(defaultRow || 2); //Number Of Row Per Page
-    const totalPages = Math.ceil(rowLength / pageSize);
     const pageSizeValue = arrayOfPageSiteValue || [
       {val: 5},
       {val: 10},
       {val: 20},
     ]
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState<number>(pageSizeValue[0].val); //Number Of Row Per Page
+    const totalPages = Math.ceil(rowLength / pageSize);
   
     const refreshData = () => {
       setCurrentPage(1);
@@ -36,10 +35,12 @@ const Footer = ({
       setCurrentPage(1); // Reset to the first page on page size change
     };
   
+    
     // Calculate the data for the current page
-    // const startRow = (currentPage - 1) * pageSize;
-    // const endRow = startRow + pageSize;
-    // const paginatedData = rowData.slice(startRow, endRow);
+    const startRow = (currentPage - 1) * pageSize;
+    const endRow = startRow + pageSize;
+    onRowChange(startRow, endRow);
+    
 
     return (
         <div className="flex w-full min-h-12 flex-row items-center justify-between px-4 gap-4 border-[1px] border-t-0 border-t-gray-400 rounded-b-[5px] text-sm">
@@ -59,15 +60,15 @@ const Footer = ({
 
             {/* Custom pagination controls */}
             <div className='flex flex-row items-center'>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                  <GrFormPrevious color={currentPage === totalPages ? '#000' : '#aaa'} size={18}/>
-                </button>
-                <span className='mx-3'>
-                  صفحه  {totalPages} از {currentPage}
-                </span>
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                  <GrFormNext color={currentPage === 1 ? '#000' : '#aaa'} size={18}/>
-                </button>
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className='p-2 hover:bg-gray-100 rounded-full'>
+                <GrFormPrevious color={currentPage === totalPages ? '#aaa' : '#000'} size={18}/>
+              </button>
+              <span className='mx-3'>
+                صفحه  {totalPages} از {currentPage}
+              </span>
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className='p-2 hover:bg-gray-100 rounded-full'>
+                <GrFormNext color={currentPage === 1 ? '#aaa' : '#000'} size={18}/>
+              </button>
             </div>
           </div>
 

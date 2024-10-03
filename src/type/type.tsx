@@ -64,7 +64,7 @@ interface PageSize {
 }
 
 export interface FooterType {
-    defaultRow?: number;
     rowLength: number;
+    onRowChange: (start: number, end: number) => void;
     arrayOfPageSiteValue?: PageSize[];
 }
