@@ -58,3 +58,8 @@ export interface EntityListType {
     IsSerialChanges: boolean;
     buttons: any[];
   }
+
+export interface FooterType {
+    numberOfRow: number;
+    rowLength: number
+}

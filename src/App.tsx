@@ -4,11 +4,13 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
 import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
+import Footer from './componet/footer/footer.tsx';
 
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>([]);
   const [entityData, setEntityData] = useState<EntityListType>();
-  const [rowData, setRowData] = useState<any[]>([]);
+  const [rowData] = useState<any[]>([]);
+  const numberOfRow: number = 2;
 
   // ------ handle upload file ---------
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -75,7 +77,7 @@ const Home: React.FC = () => {
       flex: 1,
     };
   }, []);
-  
+
   return (
     <>
       <input 
@@ -85,18 +87,24 @@ const Home: React.FC = () => {
       />
 
       <div 
-        style={{width:'100wh', height:'98vh'}}
+        style={{width:'100wh', height:'90vh'}}
         className={`ag-theme-quartz`}
       >
         <AgGridReact
           rowData={rowData}
           columnDefs={columnData}
-          pagination={true}
+          pagination={false} // Disable AG Grid pagination since we are using custom pagination
           localeText={AG_GRID_LOCALE_IR}
           defaultColDef={defaultColDef}
           pivotMode={false}
         />
       </div>
+
+      {/* Custom Footer */}
+      <Footer 
+        numberOfRow={numberOfRow}
+        rowLength={rowData.length}
+      />
     </>
   );
 }
