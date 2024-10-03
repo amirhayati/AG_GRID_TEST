@@ -1,14 +1,23 @@
 import React, { useState } from 'react'
+import { GrFormPrevious, GrFormNext } from "react-icons/gr";
+
 import { FooterType } from '../../type/type';
 
 const Footer = ({
-    numberOfRow, //Number Of Row Per Page
-    rowLength  //Row Length
+    defaultRow, //Default Number Of page size
+    rowLength,  //Row Length
+    arrayOfPageSiteValue  //Page Size Value
     }: FooterType) => {
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(numberOfRow); //Number Of Row Per Page
+    const [pageSize, setPageSize] = useState(defaultRow || 2); //Number Of Row Per Page
     const totalPages = Math.ceil(rowLength / pageSize);
+    const pageSizeValue = arrayOfPageSiteValue || [
+      {val: 5},
+      {val: 10},
+      {val: 20},
+    ]
+
   
     const refreshData = () => {
       setCurrentPage(1);
@@ -31,33 +40,43 @@ const Footer = ({
     // const paginatedData = rowData.slice(startRow, endRow);
 
     return (
-        <div className="custom-footer" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderTop: '1px solid #d0d0d0', marginTop: '10px' }}>
+        <div className="flex flex-row items-center justify-between p-4 gap-4 border-[1px] border-t-0 border-t-gray-400 rounded-b-[5px] text-sm">
+          {/* Footer Left Side */}
+          <div className='flex gap-8'>
+            {/* Page size selector */}
             <div>
-                {/* Page size selector */}
-                <label style={{ marginRight: '10px' }}>Page Size:</label>
-                <select value={pageSize} onChange={handlePageSizeChange}>
-                <option value={2}>2</option>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
+                {/* <label style={{ marginRight: '10px' }}>Page Size:</label> */}
+                <select value={pageSize} onChange={handlePageSizeChange} className='border-2 px-1 py-1 min-w-12 rounded-md'>
+                  {
+                    pageSizeValue.map((item)=>(
+                      <option value={item.val}>{item.val}</option>
+                    ))
+                  }
                 </select>
             </div>
-            <div>
-                {/* Custom pagination controls */}
+
+            {/* Custom pagination controls */}
+            <div className='flex flex-row items-center'>
                 <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                Previous
+                  <GrFormPrevious color={currentPage === 1 ? '#000' : '#aaa'} size={18}/>
                 </button>
                 <span style={{ margin: '0 10px' }}>
-                Page {currentPage} of {totalPages}
+                  صفحه  {totalPages} از {currentPage}
                 </span>
                 <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                Next
+                  <GrFormNext color={currentPage === totalPages ? '#000' : '#aaa'} size={18}/>
                 </button>
             </div>
+          </div>
+
+          {/* Footer Right Side */}
+          <div className='flex gap-8'>
             <div>
                 <button onClick={refreshData} style={{ padding: '5px 10px' }}>
                 Refresh
                 </button>
             </div>
+          </div>
         </div>
     )
 }

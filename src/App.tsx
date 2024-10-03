@@ -10,7 +10,6 @@ const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>([]);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData] = useState<any[]>([]);
-  const numberOfRow: number = 2;
 
   // ------ handle upload file ---------
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -102,8 +101,13 @@ const Home: React.FC = () => {
 
       {/* Custom Footer */}
       <Footer 
-        numberOfRow={numberOfRow}
+        defaultRow={2}
         rowLength={rowData.length}
+        arrayOfPageSiteValue={[
+          {val: 2},
+          {val: 4},
+          {val: 8},
+        ]}
       />
     </>
   );

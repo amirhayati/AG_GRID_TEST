@@ -57,9 +57,14 @@ export interface EntityListType {
     idField: string;
     IsSerialChanges: boolean;
     buttons: any[];
-  }
+}
+
+interface PageSize {
+    val: number;
+}
 
 export interface FooterType {
-    numberOfRow: number;
-    rowLength: number
+    defaultRow?: number;
+    rowLength: number;
+    arrayOfPageSiteValue?: PageSize[];
 }
