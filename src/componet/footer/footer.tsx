@@ -3,6 +3,7 @@ import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { FiRefreshCcw } from "react-icons/fi";
 
 import { FooterType } from '../../type/type';
+import { FaMinus, FaPlus } from 'react-icons/fa';
 
 const Footer = ({
     defaultRow, //Default Number Of page size
@@ -41,7 +42,7 @@ const Footer = ({
     // const paginatedData = rowData.slice(startRow, endRow);
 
     return (
-        <div className="flex flex-row items-center justify-between p-2 px-4 gap-4 border-[1px] border-t-0 border-t-gray-400 rounded-b-[5px] text-sm">
+        <div className="flex w-full min-h-12 flex-row items-center justify-between px-4 gap-4 border-[1px] border-t-0 border-t-gray-400 rounded-b-[5px] text-sm">
           {/* Footer Left Side */}
           <div className='flex gap-8'>
             {/* Page size selector */}
@@ -71,8 +72,16 @@ const Footer = ({
           </div>
 
           {/* Footer Right Side */}
-          <div className='flex gap-8'>
-              <button onClick={refreshData} className='p-2 rounded-md hover:bg-gray-200'>
+          <div className='flex gap-4 h-full'>
+              <button onClick={refreshData} className='w-8 h-8 flex-center rounded-md hover:bg-gray-200'>
+                <FaMinus />
+              </button>
+
+              <button onClick={refreshData} className='w-8 h-8 flex-center rounded-md hover:bg-gray-200'>
+                <FaPlus />
+              </button>
+
+              <button onClick={refreshData} className='w-8 h-8 flex-center rounded-md hover:bg-gray-200'>
                 <FiRefreshCcw />
               </button>
           </div>
