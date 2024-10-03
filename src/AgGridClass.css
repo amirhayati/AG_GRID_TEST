@@ -1,0 +1,8 @@
+.ag-paging-panel {
+    display: flex;
+    justify-content: flex-start !important; /* Align the pagination to the left */
+}
+
+.ag-paging-panel .ag-label {
+    display: none !important;  /* Hides page size label */
+}

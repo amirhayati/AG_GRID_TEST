@@ -8,7 +8,7 @@ import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>([]);
   const [entityData, setEntityData] = useState<EntityListType>();
-  const [rowData] = useState<any[]>([]);
+  const [rowData, setRowData] = useState<any[]>([]);
 
   // ------ handle upload file ---------
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -81,7 +81,7 @@ const Home: React.FC = () => {
       <input 
         type="file" 
         accept=".json, .txt" 
-        onChange={handleFileUpload} 
+        onChange={handleFileUpload}
       />
 
       <div 
