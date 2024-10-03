@@ -3,10 +3,10 @@ import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
-import { ColumnDataType, EntityListType } from './type/type';
+import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
 
 const Home: React.FC = () => {
-  const [columnData, setColumnData] = useState<ColumnDataType[]>([]);
+  const [columnData, setColumnData] = useState<ColumnStateType[]>([]);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData] = useState<any[]>([]);
 

@@ -1,16 +1,29 @@
-export interface ColumnDataType {
-    title: string;
-    field: string;
-    sortable: boolean;
+export interface ColumnStateType {
     align: string;
-    IsVisible: boolean;
-    filter: string | boolean;
-    width: number;
     cellClass: string;
-    ColumnType?: number | string;
-    OrderId: number
+    field: string;
+    filter: string;
+    floatingFilter: boolean;
+    headerName: string;
+    lockPosition: boolean;
+    minWidth: number;
+    order: number | null;
+    sortable: boolean;
 }
 
+export interface ColumnDataType {
+    IsVisible: boolean;
+    field: string;
+    title?: string;
+    sortable?: boolean;
+    align?: string;
+    width?: number;
+    cellClass?: string;
+    ColumnType?: number | string;
+    OrderId?: number | null;
+    filter?: string | boolean;
+}
+  
 export interface EntityListType {
     title: string;
     fit: boolean;
