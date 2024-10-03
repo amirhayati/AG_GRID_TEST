@@ -1,15 +1,16 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
 import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
 import Footer from './componet/footer/footer.tsx';
+import { SampleColumnData } from './data/sample.js';
 
 const Home: React.FC = () => {
-  const [columnData, setColumnData] = useState<ColumnStateType[]>([]);
+  const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
-  const [rowData] = useState<any[]>([]);
+  const [rowData, setRowData] = useState<any[]>([]);
 
   // ------ handle upload file ---------
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -75,6 +76,13 @@ const Home: React.FC = () => {
     return {
       flex: 1,
     };
+  }, []);
+
+ // Fetch data & update rowData state
+  useEffect(() => {
+    fetch('https://www.ag-grid.com/example-assets/space-mission-data.json') 
+        .then((result) => result.json()) 
+        .then((rowData) => setRowData(rowData)); 
   }, []);
 
   return (
