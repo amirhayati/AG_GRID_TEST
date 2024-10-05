@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
@@ -11,8 +11,8 @@ const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
-
-  // ------ handle upload file ---------
+  const gridRef = useRef(null);
+  // ------ handle upload file ------
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
     if (!event?.target?.files) {
       console.error("No file selected or event object is undefined");
@@ -72,13 +72,14 @@ const Home: React.FC = () => {
     }
   };
 
+  // ------ defaultColDef ------
   const defaultColDef = useMemo(() => {
     return {
       flex: 1,
     };
   }, []);
 
-  // Refresh Row Data
+  // ------ Refresh Row Data For Pagination ------
   const [startRow, setStartRow] = useState<number>(0);
   const [endRow, setEndRow] = useState<number>(0);
   const handleRowChange = (start: number, end: number) => {
@@ -87,33 +88,56 @@ const Home: React.FC = () => {
   };
   const paginatedData = rowData.slice(startRow, endRow);
 
- // Fetch data & update rowData state
+ // ------ Get data & update rowData state staticly ------
   useEffect(() => {
     fetch('https://www.ag-grid.com/example-assets/space-mission-data.json') 
-        .then((result) => result.json()) 
-        .then((rowData) => setRowData(rowData)); 
+      .then((resp) => resp.json())
+      .then((data) => setRowData(data));
   }, []);
 
+  // ------ Custom Advanced Filter ------
+  const onGridReady = useCallback((params) => {
+    params.api.setGridOption(
+      "advancedFilterParent",
+      document.getElementById("advancedFilterParent"),
+    );
+  }, []);
+
+  // Function to get the current filter model (floating filters included)
+  const getFilterModel = () => {
+    if (gridRef.current) {
+      const filterModel = gridRef.current.api.getFilterModel();
+      console.log('Filter model:', filterModel);
+    }
+  };
+
   return (
-    <>
-      <input 
+    <div className='space-y-4'>
+       <input 
         type="file" 
         accept=".json, .txt" 
         onChange={handleFileUpload}
       />
 
+<button onClick={getFilterModel}>Get Filter Data</button>
+      {/* ------ Custom Advanced Filter UI ------ */}
+      <div id="advancedFilterParent" className="example-header"></div>
+
       <div 
-        style={{width:'100wh', height:'90vh'}}
+        style={{width:'100wh', height:'85vh'}}
         className={`ag-theme-quartz`}
       >
         <AgGridReact
+        ref={gridRef}
           rowData={paginatedData}
           columnDefs={columnData}
           pagination={false} // Disable AG Grid pagination since we are using custom pagination
           localeText={AG_GRID_LOCALE_IR}
           defaultColDef={defaultColDef}
           pivotMode={false}
-          enableAdvancedFilter={true}
+          onGridReady={onGridReady}
+          
+          // enableAdvancedFilter={true}
         />
       </div>
 
@@ -127,7 +151,7 @@ const Home: React.FC = () => {
           {val: 80},
         ]}
       />
-    </>
+    </div>
   );
 }
 
