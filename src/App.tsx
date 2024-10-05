@@ -6,12 +6,15 @@ import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
 import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
 import Footer from './componet/footer/footer.tsx';
 import { SampleColumnData } from './data/sample.js';
+import ConvertToAdvancedFilterModel from './componet/convertToAdvanceFilterObject.tsx'
 
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
-  const gridRef = useRef(null);
+  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
+  const gridRef = useRef<AgGridReact>(null);
+  
   // ------ handle upload file ------
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
     if (!event?.target?.files) {
@@ -103,11 +106,14 @@ const Home: React.FC = () => {
     );
   }, []);
 
-  // Function to get the current filter model (floating filters included)
+  // Example usage in your getFilterModel function
   const getFilterModel = () => {
     if (gridRef.current) {
       const filterModel = gridRef.current.api.getFilterModel();
-      console.log('Filter model:', filterModel);
+      console.log('Floating Filter model:', filterModel);
+
+      const advancedFilterModel = ConvertToAdvancedFilterModel(filterModel);
+      console.log('Advanced Filter Model:', advancedFilterModel);
     }
   };
 
@@ -130,7 +136,7 @@ const Home: React.FC = () => {
         className={`ag-theme-quartz`}
       >
         <AgGridReact
-        ref={gridRef}
+          ref={gridRef}
           rowData={paginatedData}
           columnDefs={columnData}
           pagination={false} // Disable AG Grid pagination since we are using custom pagination
@@ -138,7 +144,7 @@ const Home: React.FC = () => {
           defaultColDef={defaultColDef}
           pivotMode={false}
           onGridReady={onGridReady}
-          
+
           // enableAdvancedFilter={true}
         />
       </div>

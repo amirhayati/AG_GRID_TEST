@@ -68,3 +68,27 @@ export interface FooterType {
     onRowChange: (start: number, end: number) => void;
     arrayOfPageSiteValue?: PageSize[];
 }
+
+export interface FilterModelType {
+    filterType: string;
+    type: string;
+    filter?: string | number;
+    dateFrom?: string;
+    dateTo?: string;
+    filterModels?: Array<FilterModelType | null>;
+};
+  
+export interface AdvancedFilterConditionType {
+    filterType: string;
+    colId: string;
+    type: string;
+    filter?: string | number;
+    dateFrom?: string;
+    dateTo?: string;
+};
+  
+export interface AdvancedFilterModelType {
+    filterType: "join";
+    type: "AND";
+    conditions: Array<AdvancedFilterConditionType | { filterType: string; type: "OR"; conditions: AdvancedFilterConditionType[] }>;
+};
