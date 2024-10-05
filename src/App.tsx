@@ -13,6 +13,7 @@ const Home: React.FC = () => {
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
   const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
+  const [initialAdvancedFilterModel, setInitialAdvancedFilterModel] = useState<any>();
   const gridRef = useRef<AgGridReact>(null);
   
   // ------ handle upload file ------
@@ -113,9 +114,21 @@ const Home: React.FC = () => {
       console.log('Floating Filter model:', filterModel);
 
       const advancedFilterModel = ConvertToAdvancedFilterModel(filterModel);
+      setInitialAdvancedFilterModel(advancedFilterModel)
       console.log('Advanced Filter Model:', advancedFilterModel);
+
+      setShowAdvanceFilterModal(!showAdvanceFilterModal)
+      // gridRef.current!.api.showAdvancedFilterBuilder(); //Open AdvanceFilter Modal
     }
   };
+
+  const initialState = useMemo(() => {
+    return {
+      filter: {
+        advancedFilterModel: initialAdvancedFilterModel,
+      },
+    };
+  }, []);
 
   return (
     <div className='space-y-4'>
@@ -126,7 +139,7 @@ const Home: React.FC = () => {
       />
 
       {/* ------ Btn to Show Filter Object */}
-      <button onClick={getFilterModel}>Get Filter Data</button>
+      <button onClick={getFilterModel} className='border-2 rounded-md p-2'>{showAdvanceFilterModal?'عدم نمایش لیست فیلتر':'نمایش لیست فیلتر'}</button>
       
       {/* ------ Custom Advanced Filter UI ------ */}
       <div id="advancedFilterParent" className="example-header"></div>
@@ -145,7 +158,8 @@ const Home: React.FC = () => {
           pivotMode={false}
           onGridReady={onGridReady}
 
-          // enableAdvancedFilter={true}
+          enableAdvancedFilter={showAdvanceFilterModal}
+          initialState={initialState}
         />
       </div>
 
