@@ -10,3 +10,7 @@
 .ag-root-wrapper {
     border-radius: 5px 5px 0 0 !important;
 }
+
+.ag-header-cell-label {
+    justify-content: center !important;
+}
