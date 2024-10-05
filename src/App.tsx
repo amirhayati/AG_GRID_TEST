@@ -119,7 +119,9 @@ const Home: React.FC = () => {
         onChange={handleFileUpload}
       />
 
-<button onClick={getFilterModel}>Get Filter Data</button>
+      {/* ------ Btn to Show Filter Object */}
+      <button onClick={getFilterModel}>Get Filter Data</button>
+      
       {/* ------ Custom Advanced Filter UI ------ */}
       <div id="advancedFilterParent" className="example-header"></div>
 
