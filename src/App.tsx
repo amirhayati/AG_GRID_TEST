@@ -113,6 +113,7 @@ const Home: React.FC = () => {
           localeText={AG_GRID_LOCALE_IR}
           defaultColDef={defaultColDef}
           pivotMode={false}
+          enableAdvancedFilter={true}
         />
       </div>
 

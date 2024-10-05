@@ -1,5 +1,5 @@
 export const SampleColumnData = [
-    { field: 'mission', filter: true },
+    { field: 'mission', filter: true},
     { field: 'company' },
     { field: 'location' },
     { field: 'date' },
