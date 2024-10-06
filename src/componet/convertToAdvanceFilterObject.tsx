@@ -1,54 +1,65 @@
-import { AdvancedFilterConditionType, AdvancedFilterModelType, FilterModelType } from "../type/type";
-
-const ConvertToAdvancedFilterModel = (filterModel: Record<string, FilterModelType | null>): AdvancedFilterModelType => {
-    const conditions: AdvancedFilterConditionType[] = [];
-  
-    for (const [key, value] of Object.entries(filterModel)) {
-      if (value) {
-        const { filterType, type } = value;
-  
-        switch (filterType) {
-          case "multi":
-            if (Array.isArray(value.filterModels)) {
-              const subConditions = value.filterModels
-                .filter((model): model is FilterModelType => model !== null) 
-                .map((model) => ({
-                  filterType: model.filterType,
-                  colId: key, // Use the current key as the column ID
-                  type: model.type,
-                  filter: model.filter,
-                }));
-              conditions.push({
-                filterType: "join",
-                type: "OR",
-                conditions: subConditions,
-              });
-            }
-            break;
-  
-          case "text":
-          case "number":
-          case "date":
-            conditions.push({
-              filterType: filterType,
-              colId: key,
-              type: type,
-              ...(filterType === "date" ? { dateFrom: value.dateFrom, dateTo: value.dateTo } : { filter: value.filter }),
-            });
-            break;
-  
-          default:
-            console.warn(`Unsupported filterType: ${filterType}`);
-        }
-      }
-    }
-  
-    return {
+const ConvertToAdvancedFilterModel = (floatingFilter) => {
+  const advancedFilterModel = {
       filterType: "join",
       type: "AND",
-      conditions: conditions,
-    };
+      conditions: [],
   };
-  
-  export default ConvertToAdvancedFilterModel;
-  
+
+  const convertCondition = (condition, colId) => {
+      const { filterType, type, filter, dateFrom, dateTo } = condition;
+      const baseCondition = { filterType, colId };
+
+      if (filterType === "date") {
+          return {
+              ...baseCondition,
+              type,
+              dateFrom,
+              dateTo,
+          };
+      }
+
+      return {
+          ...baseCondition,
+          type,
+          filter,
+      };
+  };
+
+  Object.keys(floatingFilter).forEach((colId) => {
+      const filterData = floatingFilter[colId];
+
+      if (filterData.filterType === "multi" && filterData.filterModels) {
+          const validModels = filterData.filterModels.filter(model => model !== null);
+
+          if (validModels.length > 0) {
+              const filterConditions = validModels.flatMap(filterModel => {
+                  if (filterModel.conditions) {
+                      return filterModel.conditions.map(condition => convertCondition(condition, colId));
+                  }
+                  return [convertCondition(filterModel, colId)];
+              });
+
+              // Create a multi filter condition
+              const multiFilter = {
+                  filterType: "join",
+                  type: filterData.operator || "OR", // Default to OR if no operator specified
+                  conditions: filterConditions,
+              };
+
+              advancedFilterModel.conditions.push(multiFilter);
+          }
+      } else if (filterData.filterType === "text" || filterData.filterType === "number") {
+          // Handle single filters for text and number types
+          const singleFilter = convertCondition(filterData, colId);
+          advancedFilterModel.conditions.push(singleFilter);
+      } else if (filterData.filterType === "date") {
+          // Handle date filter
+          const dateFilter = convertCondition(filterData, colId);
+          advancedFilterModel.conditions.push(dateFilter);
+      }
+  });
+
+  return advancedFilterModel;
+};
+
+export default ConvertToAdvancedFilterModel;

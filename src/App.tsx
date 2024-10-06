@@ -8,12 +8,16 @@ import Footer from './componet/footer/footer.tsx';
 import { SampleColumnData } from './data/sample.js';
 import ConvertToAdvancedFilterModel from './componet/convertToAdvanceFilterObject.tsx'
 
+
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
-  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
+  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(true);
   const [initialAdvancedFilterModel, setInitialAdvancedFilterModel] = useState<any>();
+  const [initialFloatingFilterModel, setInitialFloatingFilterModel] = useState<any>();
+  const [initialState, setInitialState] = useState<any>();
+console.log(initialAdvancedFilterModel)
   const gridRef = useRef<AgGridReact>(null);
   
   // ------ handle upload file ------
@@ -99,36 +103,109 @@ const Home: React.FC = () => {
       .then((data) => setRowData(data));
   }, []);
 
-  // ------ Custom Advanced Filter ------
+  // ------ Customize Advanced Filter ------
   const onGridReady = useCallback((params) => {
+    // gridRef.current = params.api; //this line just show advance filter on table
     params.api.setGridOption(
       "advancedFilterParent",
       document.getElementById("advancedFilterParent"),
     );
   }, []);
 
-  // Example usage in your getFilterModel function
+
+
+
+  // Example usage in your getFilterObject function
   const getFilterModel = () => {
     if (gridRef.current) {
+      // Get the current floating filter object
       const filterModel = gridRef.current.api.getFilterModel();
-      console.log('Floating Filter model:', filterModel);
+      setInitialFloatingFilterModel(filterModel)
+      // console.log('Floating Filter object:', filterModel);
 
+      // Convert the floating filter object to advanced filter object
       const advancedFilterModel = ConvertToAdvancedFilterModel(filterModel);
-      setInitialAdvancedFilterModel(advancedFilterModel)
-      console.log('Advanced Filter Model:', advancedFilterModel);
+      setInitialAdvancedFilterModel(advancedFilterModel);
+      // console.log('Advanced Filter object:', advancedFilterModel);
 
-      setShowAdvanceFilterModal(!showAdvanceFilterModal)
-      // gridRef.current!.api.showAdvancedFilterBuilder(); //Open AdvanceFilter Modal
+      // Toggle the advanced filter modal visibility
+      setShowAdvanceFilterModal(!showAdvanceFilterModal);
+      if (!showAdvanceFilterModal) {
+        gridRef.current.api.setFilterModel(advancedFilterModel);
+      }else{
+        gridRef.current.api.setFilterModel(filterModel)
+      }
     }
   };
 
-  const initialState = useMemo(() => {
-    return {
+  const advancedFilterModel = {
+    "filterType": "join",
+    "type": "AND",
+    "conditions": [
+        {
+            "filterType": "join",
+            "type": "AND",
+            "conditions": [
+                {
+                    "filterType": "text",
+                    "colId": "mission",
+                    "type": "contains",
+                    "filter": "a"
+                }
+            ]
+        },
+        {
+            "filterType": "join",
+            "type": "AND",
+            "conditions": [
+                {
+                    "filterType": "text",
+                    "colId": "company",
+                    "type": "contains",
+                    "filter": "a"
+                },
+                {
+                    "filterType": "text",
+                    "colId": "company",
+                    "type": "notContains",
+                    "filter": "b"
+                }
+            ]
+        },
+        {
+            "filterType": "join",
+            "type": "OR",
+            "conditions": [
+                {
+                    "filterType": "text",
+                    "colId": "location",
+                    "type": "contains",
+                    "filter": "a"
+                },
+                {
+                    "filterType": "text",
+                    "colId": "location",
+                    "type": "endsWith",
+                    "filter": "b"
+                }
+            ]
+        }
+    ]
+}
+
+  // Event handler for Show the advanced filter builder After Click Btn
+  const onModelUpdatedRendered = () => {    
+    // params.api.showAdvancedFilterBuilder(); //Open Advance Filter Build Modal After enableAdvancedFilter(true)
+  };
+
+  useEffect(()=>{
+    const initialState = {
       filter: {
-        advancedFilterModel: initialAdvancedFilterModel,
+        advancedFilterModel: showAdvanceFilterModal?initialFloatingFilterModel:initialAdvancedFilterModel,
       },
     };
-  }, []);
+    setInitialState(initialState); // update initialState of advance filter
+  },[initialAdvancedFilterModel, initialFloatingFilterModel])
 
   return (
     <div className='space-y-4'>
@@ -157,6 +234,9 @@ const Home: React.FC = () => {
           defaultColDef={defaultColDef}
           pivotMode={false}
           onGridReady={onGridReady}
+
+          // enableAdvancedFilter={true}
+          onModelUpdated={onModelUpdatedRendered}
 
           enableAdvancedFilter={showAdvanceFilterModal}
           initialState={initialState}
