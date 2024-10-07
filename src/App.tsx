@@ -12,7 +12,7 @@ const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
-  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(true);
+  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
   const [initialAdvancedFilterModel, setInitialAdvancedFilterModel] = useState<any>();
   const [floatingFilterModel, setFloatingFilterModel] = useState<any>();
   const gridRef = useRef<AgGridReact>(null);
