@@ -1,26 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
+import Footer from './components/footer.tsx';
+import { SampleColumnData } from './data/sample.js';
 import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
-import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
-import Footer from './componet/footer/footer.tsx';
-import { SampleColumnData } from './data/sample.js';
-import ConvertToAdvancedFilterModel from './componet/convertToAdvanceFilterObject.tsx'
-
+import AdvancedFilterUI from './components/advancedFilterUI.tsx';
 
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
-  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(true);
+  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
   const [initialAdvancedFilterModel, setInitialAdvancedFilterModel] = useState<any>();
-  const [initialFloatingFilterModel, setInitialFloatingFilterModel] = useState<any>();
-  const [initialState, setInitialState] = useState<any>();
-console.log(initialAdvancedFilterModel)
+  const [floatingFilterModel, setFloatingFilterModel] = useState<any>();
   const gridRef = useRef<AgGridReact>(null);
-  
-  // ------ handle upload file ------
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
     if (!event?.target?.files) {
       console.error("No file selected or event object is undefined");
@@ -87,7 +83,6 @@ console.log(initialAdvancedFilterModel)
     };
   }, []);
 
-  // ------ Refresh Row Data For Pagination ------
   const [startRow, setStartRow] = useState<number>(0);
   const [endRow, setEndRow] = useState<number>(0);
   const handleRowChange = (start: number, end: number) => {
@@ -96,165 +91,58 @@ console.log(initialAdvancedFilterModel)
   };
   const paginatedData = rowData.slice(startRow, endRow);
 
- // ------ Get data & update rowData state staticly ------
   useEffect(() => {
     fetch('https://www.ag-grid.com/example-assets/space-mission-data.json') 
       .then((resp) => resp.json())
       .then((data) => setRowData(data));
   }, []);
 
-  // ------ Customize Advanced Filter ------
-  const onGridReady = useCallback((params) => {
-    // gridRef.current = params.api; //this line just show advance filter on table
-    params.api.setGridOption(
-      "advancedFilterParent",
-      document.getElementById("advancedFilterParent"),
-    );
-  }, []);
-
-
-
-
-  // Example usage in your getFilterObject function
+  // Example usage in your getFilterModel function
   const getFilterModel = () => {
     if (gridRef.current) {
-      // Get the current floating filter object
       const filterModel = gridRef.current.api.getFilterModel();
-      setInitialFloatingFilterModel(filterModel)
-      // console.log('Floating Filter object:', filterModel);
-
-      // Convert the floating filter object to advanced filter object
-      const advancedFilterModel = ConvertToAdvancedFilterModel(filterModel);
-      setInitialAdvancedFilterModel(advancedFilterModel);
-      // console.log('Advanced Filter object:', advancedFilterModel);
-
-      // Toggle the advanced filter modal visibility
-      setShowAdvanceFilterModal(!showAdvanceFilterModal);
-      if (!showAdvanceFilterModal) {
-        gridRef.current.api.setFilterModel(advancedFilterModel);
-      }else{
-        gridRef.current.api.setFilterModel(filterModel)
-      }
+      setFloatingFilterModel(filterModel)
+      console.log('Floating Filter model:', filterModel);
+      setShowAdvanceFilterModal(!showAdvanceFilterModal)
     }
   };
 
-  const advancedFilterModel = {
-    "filterType": "join",
-    "type": "AND",
-    "conditions": [
-        {
-            "filterType": "join",
-            "type": "AND",
-            "conditions": [
-                {
-                    "filterType": "text",
-                    "colId": "mission",
-                    "type": "contains",
-                    "filter": "a"
-                }
-            ]
-        },
-        {
-            "filterType": "join",
-            "type": "AND",
-            "conditions": [
-                {
-                    "filterType": "text",
-                    "colId": "company",
-                    "type": "contains",
-                    "filter": "a"
-                },
-                {
-                    "filterType": "text",
-                    "colId": "company",
-                    "type": "notContains",
-                    "filter": "b"
-                }
-            ]
-        },
-        {
-            "filterType": "join",
-            "type": "OR",
-            "conditions": [
-                {
-                    "filterType": "text",
-                    "colId": "location",
-                    "type": "contains",
-                    "filter": "a"
-                },
-                {
-                    "filterType": "text",
-                    "colId": "location",
-                    "type": "endsWith",
-                    "filter": "b"
-                }
-            ]
-        }
-    ]
-}
-
-  // Event handler for Show the advanced filter builder After Click Btn
-  const onModelUpdatedRendered = () => {    
-    // params.api.showAdvancedFilterBuilder(); //Open Advance Filter Build Modal After enableAdvancedFilter(true)
-  };
-
-  useEffect(()=>{
-    const initialState = {
-      filter: {
-        advancedFilterModel: showAdvanceFilterModal?initialFloatingFilterModel:initialAdvancedFilterModel,
-      },
-    };
-    setInitialState(initialState); // update initialState of advance filter
-  },[initialAdvancedFilterModel, initialFloatingFilterModel])
-
   return (
     <div className='space-y-4'>
-       <input 
+      <input 
         type="file" 
         accept=".json, .txt" 
         onChange={handleFileUpload}
       />
 
+      <AdvancedFilterUI visible={showAdvanceFilterModal} data={floatingFilterModel} changeVisible={setShowAdvanceFilterModal}/>
+      
       {/* ------ Btn to Show Filter Object */}
       <button onClick={getFilterModel} className='border-2 rounded-md p-2'>{showAdvanceFilterModal?'عدم نمایش لیست فیلتر':'نمایش لیست فیلتر'}</button>
-      
-      {/* ------ Custom Advanced Filter UI ------ */}
-      <div id="advancedFilterParent" className="example-header"></div>
 
-      <div 
-        style={{width:'100wh', height:'85vh'}}
-        className={`ag-theme-quartz`}
-      >
+      <div style={{ width: '100wh', height: '85vh' }} className={`ag-theme-quartz`}>
         <AgGridReact
           ref={gridRef}
           rowData={paginatedData}
           columnDefs={columnData}
-          pagination={false} // Disable AG Grid pagination since we are using custom pagination
+          pagination={false}
           localeText={AG_GRID_LOCALE_IR}
           defaultColDef={defaultColDef}
           pivotMode={false}
-          onGridReady={onGridReady}
-
-          // enableAdvancedFilter={true}
-          onModelUpdated={onModelUpdatedRendered}
-
-          enableAdvancedFilter={showAdvanceFilterModal}
-          initialState={initialState}
         />
       </div>
 
-      {/* Custom Footer */}
       <Footer 
         rowLength={rowData.length}
-        onRowChange={handleRowChange} 
+        onRowChange={handleRowChange}
         arrayOfPageSiteValue={[
-          {val: 20},
-          {val: 40},
-          {val: 80},
+          { val: 20 },
+          { val: 40 },
+          { val: 80 },
         ]}
       />
     </div>
   );
-}
+};
 
 export default Home;

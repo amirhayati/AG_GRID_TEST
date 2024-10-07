@@ -1,3 +1,6 @@
+
+import { AgGridReact } from 'ag-grid-react';
+
 export interface ColumnStateType {
     align: string;
     cellClass: string;
@@ -92,3 +95,9 @@ export interface AdvancedFilterModelType {
     type: "AND";
     conditions: Array<AdvancedFilterConditionType | { filterType: string; type: "OR"; conditions: AdvancedFilterConditionType[] }>;
 };
+
+export interface AdvancedFilterUIType {
+    visible: boolean;
+    data: any;
+    changeVisible: React.Dispatch<React.SetStateAction<boolean>>
+}

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { FiRefreshCcw } from "react-icons/fi";
 
-import { FooterType } from '../../type/type';
+import { FooterType } from '../type/type';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 
 const Footer = ({
