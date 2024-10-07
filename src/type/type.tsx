@@ -98,6 +98,20 @@ export interface AdvancedFilterModelType {
 
 export interface AdvancedFilterUIType {
     visible: boolean;
-    data: any;
+    object: any;
     changeVisible: React.Dispatch<React.SetStateAction<boolean>>
+    onFilterChange:(newFilterModel: any) => void;
+    columnData: ColumnStateType[]
 }
+
+export interface FilterConditionType {
+    field: string;
+    operator: string;
+    value: string | number;
+    type: 'number' | 'text';
+  }
+  
+export interface FilterGroupType {
+    logic: 'AND' | 'OR';
+    conditions: FilterConditionType[];
+  }

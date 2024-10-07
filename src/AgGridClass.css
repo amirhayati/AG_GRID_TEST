@@ -15,62 +15,41 @@
     justify-content: center !important;
 }
 
+
+
 .filter-builder {
-    background-color: #2c3e50;
     padding: 20px;
+    background-color: #2a2a3b;
     border-radius: 10px;
     color: white;
-    font-family: Arial, sans-serif;
-  }
-  
-  .filter-header {
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-condition {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .filter-header h3 {
-    margin: 0;
-  }
-  
-  .filters-list {
-    margin-top: 20px;
-  }
-  
-  .filter-item {
+    gap: 10px;
+    margin-bottom: 1rem;
+    margin-left: 4rem;
+}
+
+.actions {
     display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  
-  .filter-item select, .filter-item input {
-    margin-right: 10px;
+    gap: 10px;
+}
+
+select, input {
     padding: 5px;
     border-radius: 5px;
+    color: #2a2a3b;
+}
+
+.btn {
+    padding: 5px 10px;
     border: none;
-    color: #2c3e50;
-  }
-  
-  .filter-item input {
-    width: 100px;
-  }
-  
-  .filter-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  button {
-    background-color: #34495e;
-    border: none;
-    color: white;
-    padding: 10px;
     border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #3a536b;
-  }
-  
+    background-color: #556ee6;
+    color: white;
+}

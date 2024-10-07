@@ -12,7 +12,7 @@ const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
-  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
+  const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(true);
   const [initialAdvancedFilterModel, setInitialAdvancedFilterModel] = useState<any>();
   const [floatingFilterModel, setFloatingFilterModel] = useState<any>();
   const gridRef = useRef<AgGridReact>(null);
@@ -97,26 +97,54 @@ const Home: React.FC = () => {
       .then((data) => setRowData(data));
   }, []);
 
-  // Example usage in your getFilterModel function
-  const getFilterModel = () => {
+
+  // Function to apply filter model to the grid
+  const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
-      const filterModel = gridRef.current.api.getFilterModel();
-      setFloatingFilterModel(filterModel)
-      console.log('Floating Filter model:', filterModel);
-      setShowAdvanceFilterModal(!showAdvanceFilterModal)
+      gridRef.current.api.setFilterModel(filterModel);
     }
   };
 
+  // Handle filter model changes from AdvancedFilterUI
+  const handleFilterChange = (newFilterModel: any) => {
+    setFloatingFilterModel(newFilterModel);
+    applyFilterModel(newFilterModel); // Apply the new filter model to the grid
+  };
+
+  const getFilterModel = () => {
+    if (gridRef.current) {
+      const filterModel = gridRef.current.api.getFilterModel();
+      setFloatingFilterModel(filterModel);
+      console.log('Floating Filter model:', filterModel);
+      setShowAdvanceFilterModal(!showAdvanceFilterModal);
+    }
+  };
+
+  const onGridReady = useCallback((params) => {
+    if (floatingFilterModel) {
+      params.api.setFilterModel(floatingFilterModel); // Apply initial filter model when grid is ready
+      console.log('Applied initial filter model:', floatingFilterModel); // Debugging
+    }
+  }, [floatingFilterModel]);
+
   return (
     <div className='space-y-4'>
+      <div className={`${showAdvanceFilterModal?'fixed inset-0 blur-lg bg-black opacity-30 z-30':''}`}/>
+
       <input 
         type="file" 
         accept=".json, .txt" 
         onChange={handleFileUpload}
       />
 
-      <AdvancedFilterUI visible={showAdvanceFilterModal} data={floatingFilterModel} changeVisible={setShowAdvanceFilterModal}/>
-      
+      <AdvancedFilterUI
+        visible={showAdvanceFilterModal}
+        object={floatingFilterModel}
+        columnData={columnData}
+        changeVisible={setShowAdvanceFilterModal}
+        onFilterChange={handleFilterChange} // Pass filter change handler
+      />
+
       {/* ------ Btn to Show Filter Object */}
       <button onClick={getFilterModel} className='border-2 rounded-md p-2'>{showAdvanceFilterModal?'عدم نمایش لیست فیلتر':'نمایش لیست فیلتر'}</button>
 
@@ -129,6 +157,7 @@ const Home: React.FC = () => {
           localeText={AG_GRID_LOCALE_IR}
           defaultColDef={defaultColDef}
           pivotMode={false}
+          onGridReady={onGridReady}  // Set your default filter model
         />
       </div>
 
