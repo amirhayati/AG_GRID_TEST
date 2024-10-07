@@ -4,6 +4,14 @@ export const SampleColumnData = [
     { field: 'location', filter: "agMultiColumnFilter", floatingFilter: 'true' },
     { field: 'date', filter: 'agDateColumnFilter', floatingFilter: 'true' },
     { field: 'price', filter: 'agNumberColumnFilter', floatingFilter: 'true' },
-    { field: 'successful' },
+    { 
+      field: 'successful', 
+      filter: 'agSetColumnFilter',
+      floatingFilter: 'true',
+      filterParams: {
+          values: [true, false], 
+          suppressSelectAll: true,
+      }
+  },
     { field: 'rocket' },
   ]

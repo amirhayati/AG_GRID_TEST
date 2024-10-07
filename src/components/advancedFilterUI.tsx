@@ -1,83 +1,182 @@
 import React, { useState, useEffect } from 'react';
 import { AdvancedFilterUIType } from '../type/type';
 
-// Operators based on field types
-const operators = {
-  number: ['=', '!=', '>', '>=', '<', '<=', 'is blank', 'is not blank'],
-  text: ['contains', 'does not contain', 'equals', 'does not equal', 'begins with', 'ends with', 'is blank', 'is not blank'],
-  date: ['=', '!=', '>', '>=', '<', '<=', 'is blank', 'is not blank'],
-  multiColumn: ['equals', 'does not equal'],
+// Initial filter data structure
+const initialFilterGroup = {
+  logic: 'AND',
+  conditions: [],
 };
 
-const AdvancedFilterUI = ({ visible, changeVisible, object = {}, columnData = [] }: AdvancedFilterUIType) => {
-  // Initialize filter group using object.mission conditions
-  const initialFilterGroup = {
-    logic: 'AND', // Logic: AND / OR
-    conditions: object.mission?.filterModels
-      ? object.mission.filterModels
-          .filter((model) => model !== null) // Remove null values
-          .map(({ filterType, type, filter }, index) => ({
-            field: columnData[index]?.field || '', // Set default field from columnData
-            operator: type || '', // Use the type as operator
-            value: filter || '', // Use filter as value
-            type: filterType || 'text', // Use filterType as type (default to 'text')
-          }))
-      : [],
-  };
+const operatorSymbols = {
+  equals: '=',
+  notEqual: '!=',
+  greaterThan: '>',
+  greaterThanOrEqual: '>=',
+  lessThan: '<',
+  lessThanOrEqual: '<=',
+  isBlank: 'is blank',
+  isNotBlank: 'is not blank',
+  contains: 'contains',
+  doesNotContain: 'does not contain',
+  beginsWith: 'begins with',
+  endsWith: 'ends with',
+  is: 'is',
+  isNot: 'is not',
+};
 
+// Operators based on field types
+const operators = {
+  number: [
+    { symbol: '=', name: 'Equal' },
+    { symbol: '!=', name: 'Not Equal' },
+    { symbol: '>', name: 'Greater than' },
+    { symbol: '>=', name: 'Greater than or equal' },
+    { symbol: '<', name: 'Less than' },
+    { symbol: '<=', name: 'Less than or equal' },
+    { symbol: 'is blank', name: 'Is Blank' },
+    { symbol: 'is not blank', name: 'Is Not Blank' },
+  ],
+  text: [
+    { symbol: 'contains', name: 'Contains' },
+    { symbol: 'does not contain', name: 'Does Not Contain' },
+    { symbol: 'equals', name: 'Equals' },
+    { symbol: 'does not equal', name: 'Does Not Equal' },
+    { symbol: 'begins with', name: 'Begins With' },
+    { symbol: 'ends with', name: 'Ends With' },
+    { symbol: 'is blank', name: 'Is Blank' },
+    { symbol: 'is not blank', name: 'Is Not Blank' },
+  ],
+  date: [
+    { symbol: '=', name: 'Equal' },
+    { symbol: '!=', name: 'Not Equal' },
+    { symbol: '>', name: 'Greater than' },
+    { symbol: '>=', name: 'Greater than or equal' },
+    { symbol: '<', name: 'Less than' },
+    { symbol: '<=', name: 'Less than or equal' },
+    { symbol: 'is blank', name: 'Is Blank' },
+    { symbol: 'is not blank', name: 'Is Not Blank' },
+  ],
+  boolean: [
+    { symbol: 'is', name: 'Is' },
+    { symbol: 'is not', name: 'Is Not' },
+  ],
+  multiColumn: [
+    { symbol: 'equals', name: 'Equals' },
+    { symbol: 'does not equal', name: 'Does Not Equal' },
+  ],
+};
+
+const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: AdvancedFilterUIType) => {
   const [filterGroup, setFilterGroup] = useState(initialFilterGroup);
 
-  // Effect to update filterGroup when object or columnData changes
   useEffect(() => {
-    const newConditions = object.mission?.filterModels
-      ? object.mission.filterModels
-          .filter((model) => model !== null)
-          .map(({ filterType, type, filter }, index) => ({
-            field: columnData[index]?.field || '', // Ensure field is set correctly from columnData
-            operator: type || '',
-            value: filter || '',
-            type: filterType || 'text',
-          }))
-      : [];
-    
-    setFilterGroup({ ...filterGroup, conditions: newConditions });
-  }, [object, columnData]);
+    if (object && Object.keys(object).length > 0) {
+        const newConditions = Object.entries(object).map(([field, filter]) => {
+            const { filterType, type } = filter;
 
-  // Handler for updating a condition
+            const condition = {
+                field,
+                operator: operatorSymbols[type] || type, // Use the symbol mapping
+                type: filterType,
+            };
+
+            // For date type, include dateFrom
+            if (filterType === 'date') {
+                condition.dateFrom = filter.dateFrom || '';
+            } else if (filterType === 'set') {
+                condition.value = filter.values[0];
+            } else if (filterType === 'multi') {
+                const validModels = filter.filterModels.filter(model => model !== null);
+                condition.operator = validModels[0]?.type || 'contains';
+                condition.value = validModels[0]?.filter || '';
+            } else {
+                condition.value = filter.filter;
+            }
+
+            return condition;
+        });
+        setFilterGroup({ logic: 'AND', conditions: newConditions });
+    } else {
+        setFilterGroup(initialFilterGroup);
+    }
+  }, [object]);
+
+
+
   const updateCondition = (index: number, key: string, value: string | number) => {
     const updatedConditions = [...filterGroup.conditions];
-    updatedConditions[index] = { ...updatedConditions[index], [key]: value };
+
+    if (key === 'field') {
+      const selectedField = columnData.find((field) => field.field === value);
+
+      const newType = selectedField?.filter === 'agBooleanColumnFilter'
+        ? 'boolean'
+        : selectedField?.filter === 'agNumberColumnFilter'
+        ? 'number'
+        : selectedField?.filter === 'agDateColumnFilter'
+        ? 'date'
+        : selectedField?.filter === 'agSetColumnFilter'
+        ? 'boolean'
+        : 'text';
+
+      const newOperator = newType === 'boolean' ? 'is' : operators.text[0].symbol; // Use the symbol
+      const newValue = newType === 'boolean' ? 'true' : '';
+
+      updatedConditions[index] = {
+        field: value,
+        operator: newOperator,
+        value: newValue,
+        type: newType,
+        dateFrom: newType === 'date' ? '' : undefined,
+      };
+    } else {
+      updatedConditions[index] = { ...updatedConditions[index], [key]: value };
+    }
+
     setFilterGroup({ ...filterGroup, conditions: updatedConditions });
   };
 
-  // Handle adding a new filter
-  const addFilter = (index?: number) => {
-    const newFilter = { field: columnData[0]?.field || '', operator: 'contains', value: '', type: 'text' };
-    const updatedConditions = index !== undefined 
-      ? [...filterGroup.conditions.slice(0, index + 1), newFilter, ...filterGroup.conditions.slice(index + 1)] 
-      : [...filterGroup.conditions, newFilter];
-
-    setFilterGroup({ ...filterGroup, conditions: updatedConditions });
+  const addFilter = () => {
+    const newFilter = { field: '', operator: 'contains', value: '', type: 'text' };
+    setFilterGroup({ ...filterGroup, conditions: [...filterGroup.conditions, newFilter] });
   };
 
-  // Handle removing a filter
   const removeFilter = (index: number) => {
     const newConditions = [...filterGroup.conditions];
     newConditions.splice(index, 1);
     setFilterGroup({ ...filterGroup, conditions: newConditions });
   };
 
-  // Function to transform filterGroup into the desired data format
   const getChangedFilterData = () => {
     const filterData: any = {};
 
-    filterGroup.conditions.forEach(({ field, operator, value, type }) => {
+    filterGroup.conditions.forEach((condition) => {
+      const { field, operator, value, type, dateFrom } = condition;
       if (field) {
-        filterData[field.toLowerCase()] = {
-          filterType: type,
-          type: operator,
-          filter: value,
-        };
+        if (type === 'date') {
+          filterData[field] = {
+            filterType: 'date',
+            type: operator,
+            dateFrom,
+          };
+        } else if (type === 'boolean') {
+          if (!filterData[field]) {
+            filterData[field] = {
+              filterType: 'set',
+              type: operator,
+              values: [],
+            };
+          }
+          if (value) {
+            filterData[field].values.push(value);
+          }
+        } else {
+          filterData[field] = {
+            filterType: type,
+            type: operator,
+            filter: value,
+          };
+        }
       }
     });
 
@@ -89,7 +188,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object = {}, columnData = []
       <div className='fixed z-50 w-screen h-screen flex-center overflow-scroll'>
         <div className='absolute inset-0 z-10' onClick={() => changeVisible(false)} />
         
-        <div className="filter-builder w-3/4 z-20">
+        <div className="filter-builder w-3/4 max-h-[80vh] overflow-y-scroll z-20">
           <div className="filter-group">
             <select
               value={filterGroup.logic}
@@ -100,12 +199,17 @@ const AdvancedFilterUI = ({ visible, changeVisible, object = {}, columnData = []
               <option value="OR">OR</option>
             </select>
 
+            {filterGroup.conditions.length === 0 && (
+              <button className='btn' onClick={addFilter}>+</button>
+            )}
+
             {filterGroup.conditions.map((condition, index) => (
               <div key={index} className="filter-condition">
                 <select
                   value={condition.field}
                   onChange={(e) => updateCondition(index, 'field', e.target.value)}
                 >
+                  <option value="">Select your column</option>
                   {columnData.map((field) => (
                     <option key={field.field} value={field.field}>
                       {field.field}
@@ -114,24 +218,51 @@ const AdvancedFilterUI = ({ visible, changeVisible, object = {}, columnData = []
                 </select>
 
                 <select
-                  value={condition.operator}
+                  value={condition.operator} // Keep the operator value set correctly
                   onChange={(e) => updateCondition(index, 'operator', e.target.value)}
                 >
-                  {(operators[condition.type] || operators.text).map((operator) => (
-                    <option key={operator} value={operator}>
-                      {operator}
+                  {(condition.type === 'number'
+                    ? operators.number
+                    : condition.type === 'date'
+                    ? operators.date
+                    : condition.type === 'boolean'
+                    ? operators.boolean
+                    : operators.text
+                  ).map(({ symbol }) => (
+                    <option key={symbol} value={symbol}>
+                      {operatorSymbols[symbol] || symbol} {/* Use symbol from the mapping */}
                     </option>
                   ))}
                 </select>
 
-                <input
-                  type={condition.type === 'number' ? 'number' : 'text'}
-                  value={condition.value}
-                  onChange={(e) => updateCondition(index, 'value', condition.type === 'number' ? Number(e.target.value) : e.target.value)}
-                />
+                {condition.type === 'date' ? (
+                  <div className="date-filters">
+                    <input
+                      type="datetime-local"
+                      value={condition.dateFrom || ''}
+                      onChange={(e) => updateCondition(index, 'dateFrom', e.target.value)}
+                      placeholder="From Date"
+                    />
+                  </div>
+                ) : condition.type === 'boolean' ? (
+                  <select
+                    value={condition.value || ''}
+                    onChange={(e) => updateCondition(index, 'value', e.target.value)}
+                  >
+                    <option value="">Select boolean</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                ) : (
+                  <input
+                    type={condition.type === 'number' ? 'number' : 'text'}
+                    value={condition.value}
+                    onChange={(e) => updateCondition(index, 'value', condition.type === 'number' ? Number(e.target.value) : e.target.value)}
+                  />
+                )}
 
                 <button className='btn' onClick={() => removeFilter(index)}>-</button>
-                <button className='btn' onClick={() => addFilter(index)}>+</button>
+                <button className='btn' onClick={() => addFilter()}>+</button>
               </div>
             ))}
 
@@ -141,11 +272,10 @@ const AdvancedFilterUI = ({ visible, changeVisible, object = {}, columnData = []
             </div>
           </div>
 
-          {/* Show the latest changed filter data object */}
-          <div className="filter-data">
+          {/* <div className="filter-data">
             <h3>Changed Filter Data Object:</h3>
             <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
-          </div>
+          </div> */}
         </div>
       </div>
     )
