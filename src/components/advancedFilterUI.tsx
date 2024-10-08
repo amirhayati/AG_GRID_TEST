@@ -1,69 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { AdvancedFilterUIType } from '../type/type';
+import { operatorSymbols, operators} from './advancedFilterUI/utils/operators.ts'
 
 // Initial filter data structure
 const initialFilterGroup = {
   logic: 'AND',
   conditions: [],
-};
-
-const operatorSymbols = {
-  equals: '=',
-  notEqual: '!=',
-  greaterThan: '>',
-  greaterThanOrEqual: '>=',
-  lessThan: '<',
-  lessThanOrEqual: '<=',
-  isBlank: 'is blank',
-  isNotBlank: 'is not blank',
-  contains: 'contains',
-  doesNotContain: 'does not contain',
-  beginsWith: 'begins with',
-  endsWith: 'ends with',
-  is: 'is',
-  isNot: 'is not',
-};
-
-// Operators based on field types
-const operators = {
-  number: [
-    { symbol: '=', name: 'Equal' },
-    { symbol: '!=', name: 'Not Equal' },
-    { symbol: '>', name: 'Greater than' },
-    { symbol: '>=', name: 'Greater than or equal' },
-    { symbol: '<', name: 'Less than' },
-    { symbol: '<=', name: 'Less than or equal' },
-    { symbol: 'is blank', name: 'Is Blank' },
-    { symbol: 'is not blank', name: 'Is Not Blank' },
-  ],
-  text: [
-    { symbol: 'contains', name: 'Contains' },
-    { symbol: 'does not contain', name: 'Does Not Contain' },
-    { symbol: 'equals', name: 'Equals' },
-    { symbol: 'does not equal', name: 'Does Not Equal' },
-    { symbol: 'begins with', name: 'Begins With' },
-    { symbol: 'ends with', name: 'Ends With' },
-    { symbol: 'is blank', name: 'Is Blank' },
-    { symbol: 'is not blank', name: 'Is Not Blank' },
-  ],
-  date: [
-    { symbol: '=', name: 'Equal' },
-    { symbol: '!=', name: 'Not Equal' },
-    { symbol: '>', name: 'Greater than' },
-    { symbol: '>=', name: 'Greater than or equal' },
-    { symbol: '<', name: 'Less than' },
-    { symbol: '<=', name: 'Less than or equal' },
-    { symbol: 'is blank', name: 'Is Blank' },
-    { symbol: 'is not blank', name: 'Is Not Blank' },
-  ],
-  boolean: [
-    { symbol: 'is', name: 'Is' },
-    { symbol: 'is not', name: 'Is Not' },
-  ],
-  multiColumn: [
-    { symbol: 'equals', name: 'Equals' },
-    { symbol: 'does not equal', name: 'Does Not Equal' },
-  ],
 };
 
 const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: AdvancedFilterUIType) => {
@@ -200,69 +142,73 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
             </select>
 
             {filterGroup.conditions.length === 0 && (
-              <button className='btn' onClick={addFilter}>+</button>
+              <button className='circleBtn' onClick={addFilter}>+</button>
             )}
 
             {filterGroup.conditions.map((condition, index) => (
               <div key={index} className="filter-condition">
-                <select
-                  value={condition.field}
-                  onChange={(e) => updateCondition(index, 'field', e.target.value)}
-                >
-                  <option value="">Select your column</option>
-                  {columnData.map((field) => (
-                    <option key={field.field} value={field.field}>
-                      {field.field}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={condition.operator} // Keep the operator value set correctly
-                  onChange={(e) => updateCondition(index, 'operator', e.target.value)}
-                >
-                  {(condition.type === 'number'
-                    ? operators.number
-                    : condition.type === 'date'
-                    ? operators.date
-                    : condition.type === 'boolean'
-                    ? operators.boolean
-                    : operators.text
-                  ).map(({ symbol }) => (
-                    <option key={symbol} value={symbol}>
-                      {operatorSymbols[symbol] || symbol} {/* Use symbol from the mapping */}
-                    </option>
-                  ))}
-                </select>
-
-                {condition.type === 'date' ? (
-                  <div className="date-filters">
-                    <input
-                      type="datetime-local"
-                      value={condition.dateFrom || ''}
-                      onChange={(e) => updateCondition(index, 'dateFrom', e.target.value)}
-                      placeholder="From Date"
-                    />
-                  </div>
-                ) : condition.type === 'boolean' ? (
+                <div className="filter-condition-selections">
                   <select
-                    value={condition.value || ''}
-                    onChange={(e) => updateCondition(index, 'value', e.target.value)}
+                    value={condition.field}
+                    onChange={(e) => updateCondition(index, 'field', e.target.value)}
                   >
-                    <option value="">Select boolean</option>
-                    <option value="true">True</option>
-                    <option value="false">False</option>
+                    <option value="">Select your column</option>
+                    {columnData.map((field) => (
+                      <option key={field.field} value={field.field}>
+                        {field.field}
+                      </option>
+                    ))}
                   </select>
-                ) : (
-                  <input
-                    type={condition.type === 'number' ? 'number' : 'text'}
-                    value={condition.value}
-                    onChange={(e) => updateCondition(index, 'value', condition.type === 'number' ? Number(e.target.value) : e.target.value)}
-                  />
-                )}
+                  
+                  <select
+                    value={condition.operator} // Keep the operator value set correctly
+                    onChange={(e) => updateCondition(index, 'operator', e.target.value)}
+                  >
+                    {(condition.type === 'number'
+                      ? operators.number
+                      : condition.type === 'date'
+                      ? operators.date
+                      : condition.type === 'boolean'
+                      ? operators.boolean
+                      : operators.text
+                    ).map(({ symbol }) => (
+                      <option key={symbol} value={symbol}>
+                        {symbol} {/* Use symbol from the mapping */}
+                      </option>
+                    ))}
+                  </select>
 
-                <button className='btn' onClick={() => removeFilter(index)}>-</button>
-                <button className='btn' onClick={() => addFilter()}>+</button>
+                  {condition.type === 'date' ? (
+                    <div className="date-filters">
+                      <input
+                        type="date"
+                        value={condition.dateFrom || ''}
+                        onChange={(e) => updateCondition(index, 'dateFrom', e.target.value)}
+                        placeholder="From Date"
+                      />
+                    </div>
+                  ) : condition.type === 'boolean' ? (
+                    <select
+                      value={condition.value || ''}
+                      onChange={(e) => updateCondition(index, 'value', e.target.value)}
+                    >
+                      <option value="">Select boolean</option>
+                      <option value="true">True</option>
+                      <option value="false">False</option>
+                    </select>
+                  ) : (
+                    <input
+                      type={condition.type === 'number' ? 'number' : 'text'}
+                      value={condition.value}
+                      onChange={(e) => updateCondition(index, 'value', condition.type === 'number' ? Number(e.target.value) : e.target.value)}
+                    />
+                  )}
+                </div>
+
+                <div className="filter-condition-btn">
+                  <button className='circleBtn' onClick={() => removeFilter(index)}>-</button>
+                  <button className='circleBtn'onClick={() => addFilter()}>+</button>
+                </div>
               </div>
             ))}
 
@@ -272,10 +218,10 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
             </div>
           </div>
 
-          {/* <div className="filter-data">
+          <div className="filter-data">
             <h3>Changed Filter Data Object:</h3>
             <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
-          </div> */}
+          </div>
         </div>
       </div>
     )

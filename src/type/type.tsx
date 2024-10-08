@@ -104,6 +104,15 @@ export interface AdvancedFilterUIType {
     columnData: ColumnStateType[]
 }
 
+export interface ConditionType {
+    field: string;      // The name of the field/column to be filtered.
+    operator: string;   // The operator for the condition (e.g., equals, contains, greater than).
+    value: string | number | boolean;  // The value being compared in the condition.
+    type: string;       // The type of the field (e.g., text, number, date, boolean).
+    dateFrom?: string;  // Optional date value, used when the type is 'date'.
+}
+  
+
 export interface FilterConditionType {
     field: string;
     operator: string;

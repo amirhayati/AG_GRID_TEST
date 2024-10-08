@@ -22,6 +22,8 @@
     background-color: #2a2a3b;
     border-radius: 10px;
     color: white;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .filter-group {
@@ -30,9 +32,65 @@
 
 .filter-condition {
     display: flex;
+    flex-direction: row;
+    justify-content: space-between; 
+    align-items: center;
     gap: 10px;
     margin-bottom: 1rem;
-    margin-left: 4rem;
+    margin-left: 4rem;   
+}
+
+.filter-condition-selections {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filter-condition-selections > select {
+    height:30px;
+    width: 8rem;
+    /* color: white */
+}
+
+/* .filter-condition-selections > select:first-child {
+    background-color: #005507;
+}
+
+.filter-condition-selections > select:nth-child(2) {
+    background-color: #590154;
+}
+
+.filter-condition-selections > :nth-child(3) {
+    background-color: #616eff;
+}
+
+.date-filters > :first-child {
+    background-color: #616eff;
+} */
+
+.filter-condition-btn {
+    display: flex;
+    flex-direction: row;
+    gap: .8rem;
+    width: fit-content;
+}
+
+.circleBtn {
+    width: 1.7rem;
+    height: 1.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #969696;
+    border-radius: 100%;
+    color: #969696;
+    font-size: 15px;
+    font-weight: bolder;
+}
+
+.filter-condition-btn > button:hover {
+    scale: 1.06;
 }
 
 .actions {
@@ -46,10 +104,3 @@ select, input {
     color: #2a2a3b;
 }
 
-.btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #556ee6;
-    color: white;
-}
