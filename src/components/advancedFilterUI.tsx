@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdvancedFilterUIType } from '../type/type';
-import { operatorSymbols, operators} from './advancedFilterUI/utils/operators.ts'
+import { operatorSymbols, operators } from './advancedFilterUI/utils/operators.ts';
 
 // Initial filter data structure
 const initialFilterGroup = {
@@ -13,37 +13,37 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
 
   useEffect(() => {
     if (object && Object.keys(object).length > 0) {
-        const newConditions = Object.entries(object).map(([field, filter]) => {
-            const { filterType, type } = filter;
+      const newConditions = Object.entries(object).flatMap(([field, filter]) => {
+        const { filterType, type } = filter;
 
-            const condition = {
-                field,
-                operator: operatorSymbols[type] || type, // Use the symbol mapping
-                type: filterType,
-            };
+        const condition = {
+          field,
+          operator: operatorSymbols[type] || type, // Use the symbol mapping
+          type: filterType,
+          value: filter.filter || '', // Initialize value
+        };
 
-            // For date type, include dateFrom
-            if (filterType === 'date') {
-                condition.dateFrom = filter.dateFrom || '';
-            } else if (filterType === 'set') {
-                condition.value = filter.values[0];
-            } else if (filterType === 'multi') {
-                const validModels = filter.filterModels.filter(model => model !== null);
-                condition.operator = validModels[0]?.type || 'contains';
-                condition.value = validModels[0]?.filter || '';
-            } else {
-                condition.value = filter.filter;
-            }
+        // Handle specific filter types
+        if (filterType === 'date') {
+          condition.dateFrom = filter.dateFrom || '';
+        } else if (filterType === 'set') {
+          condition.value = filter.values[0]; // Default to first value in set
+          if (type === 'boolean') {
+            condition.operator = operators.boolean[0].symbol; // Default to "Is"
+          }
+        } else if (filterType === 'multi') {
+          const validModels = filter.filterModels.filter(model => model !== null);
+          condition.operator = validModels[0]?.type || 'contains';
+          condition.value = validModels[0]?.filter || '';
+        }
 
-            return condition;
-        });
-        setFilterGroup({ logic: 'AND', conditions: newConditions });
+        return [condition]; // Return an array with a single condition
+      });
+      setFilterGroup({ logic: 'AND', conditions: newConditions });
     } else {
-        setFilterGroup(initialFilterGroup);
+      setFilterGroup(initialFilterGroup);
     }
   }, [object]);
-
-
 
   const updateCondition = (index: number, key: string, value: string | number) => {
     const updatedConditions = [...filterGroup.conditions];
@@ -61,7 +61,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
         ? 'boolean'
         : 'text';
 
-      const newOperator = newType === 'boolean' ? 'is' : operators.text[0].symbol; // Use the symbol
+      const newOperator = newType === 'boolean' ? operators.boolean[0].symbol : operators.text[0].symbol; // Use the symbol
       const newValue = newType === 'boolean' ? 'true' : '';
 
       updatedConditions[index] = {
@@ -79,7 +79,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
   };
 
   const addFilter = () => {
-    const newFilter = { field: '', operator: 'contains', value: '', type: 'text' };
+    const newFilter = { field: '', operator: 'contains', value: '', type: 'text', dateFrom: ''};
     setFilterGroup({ ...filterGroup, conditions: [...filterGroup.conditions, newFilter] });
   };
 
@@ -91,39 +91,60 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
 
   const getChangedFilterData = () => {
     const filterData: any = {};
-
+  
     filterGroup.conditions.forEach((condition) => {
-      const { field, operator, value, type, dateFrom } = condition;
+      const { field, operator, value, type, dateFrom } = condition; // Keep dateFrom
       if (field) {
         if (type === 'date') {
-          filterData[field] = {
-            filterType: 'date',
-            type: operator,
+          if (!filterData[field]) {
+            filterData[field] = {
+              filterType: 'date',
+              dateRanges: [], // Initialize the date ranges array
+            };
+          }
+          // Push the current date range with its type to the dateRanges array
+          filterData[field].dateRanges.push({
             dateFrom,
-          };
+            type: operator, // Use operator as the type for the date range
+          });
         } else if (type === 'boolean') {
           if (!filterData[field]) {
             filterData[field] = {
               filterType: 'set',
               type: operator,
-              values: [],
+              values: new Set(), // Use a Set to avoid duplicates
             };
           }
           if (value) {
-            filterData[field].values.push(value);
+            filterData[field].values.add(value); // Add boolean value to the Set
           }
         } else {
-          filterData[field] = {
-            filterType: type,
+          if (!filterData[field]) {
+            filterData[field] = {
+              filterType: type,
+              filters: [],
+            };
+          }
+          filterData[field].filters.push({
             type: operator,
             filter: value,
-          };
+          });
         }
       }
     });
-
+  
+    // Convert Sets back to arrays for the final output
+    Object.keys(filterData).forEach(field => {
+      if (filterData[field].filterType === 'set') {
+        filterData[field].values = Array.from(filterData[field].values); // Convert Set to Array
+      }
+    });
+  
     return filterData;
   };
+  
+  
+  
 
   return (
     visible && (
@@ -207,7 +228,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
 
                 <div className="filter-condition-btn">
                   <button className='circleBtn' onClick={() => removeFilter(index)}>-</button>
-                  <button className='circleBtn'onClick={() => addFilter()}>+</button>
+                  <button className='circleBtn' onClick={() => addFilter()}>+</button>
                 </div>
               </div>
             ))}
