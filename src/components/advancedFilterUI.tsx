@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AdvancedFilterUIType } from '../type/type';
 import { operatorSymbols, operators } from './advancedFilterUI/utils/operators.ts';
-
-// Initial filter group structure
-interface Condition {
-  field: string;
-  operator: string;
-  value: string | number;
-  type: string;
-  dateFrom?: string;
-}
-
-interface FilterGroup {
-  logic: 'AND' | 'OR';
-  conditions: Condition[];
-}
+import { AdvancedFilterUIType, Condition, FilterGroup } from './advancedFilterUI/type/type.ts';
 
 const initialFilterGroup: FilterGroup = {
   logic: 'AND',
@@ -264,6 +250,11 @@ const AdvancedFilterUI = ({
           <div className="actions">
             <button className='submit' onClick={() => console.log(getChangedFilterData())}>Submit</button>
             <button className='cancel' onClick={() => changeVisible(false)}>Cancel</button>
+          </div>
+
+          <div className="filter-data">
+            <h3>Filter Data:</h3>
+            <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
           </div>
         </div>
       </div>
