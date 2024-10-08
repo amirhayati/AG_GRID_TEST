@@ -3,42 +3,60 @@ import { AdvancedFilterUIType } from '../type/type';
 import { operatorSymbols, operators } from './advancedFilterUI/utils/operators.ts';
 
 // Initial filter group structure
-const initialFilterGroup = {
+interface Condition {
+  field: string;
+  operator: string;
+  value: string | number;
+  type: string;
+  dateFrom?: string;
+}
+
+interface FilterGroup {
+  logic: 'AND' | 'OR';
+  conditions: Condition[];
+}
+
+const initialFilterGroup: FilterGroup = {
   logic: 'AND',
   conditions: [],
 };
 
-const initialFilterGroups = [initialFilterGroup]; // Start with one filter group
+const initialFilterGroups: FilterGroup[] = [initialFilterGroup]; // Start with one filter group
 
-const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: AdvancedFilterUIType) => {
-  const [filterGroups, setFilterGroups] = useState(initialFilterGroups);
+const AdvancedFilterUI = ({
+  visible,
+  changeVisible,
+  object,
+  columnData,
+}: AdvancedFilterUIType) => {
+  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>(initialFilterGroups);
 
   useEffect(() => {
     if (object && Object.keys(object).length > 0) {
-      const newConditions = Object.entries(object).flatMap(([field, filter]) => {
+      const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => { // Change made here
         const { filterType, type } = filter;
-
-        const condition = {
+  
+        const condition: Condition = {
           field,
           operator: operatorSymbols[type] || type,
           type: filterType,
           value: filter.filter || '',
         };
-
+  
         // Handle specific filter types
         if (filterType === 'date') {
           condition.dateFrom = filter.dateFrom || '';
         } else if (filterType === 'set') {
-          condition.value = filter.values[0];
+          condition.value = filter.values[0] || '';
           if (type === 'boolean') {
             condition.operator = operators.boolean[0].symbol;
           }
         } else if (filterType === 'multi') {
-          const validModels = filter.filterModels.filter(model => model !== null);
+          const validModels = filter.filterModels.filter((model) => model !== null);
           condition.operator = validModels[0]?.type || 'contains';
           condition.value = validModels[0]?.filter || '';
         }
-
+  
         return [condition];
       });
       setFilterGroups([{ logic: 'AND', conditions: newConditions }]);
@@ -46,25 +64,33 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
       setFilterGroups(initialFilterGroups);
     }
   }, [object]);
+  
 
-  const updateCondition = (groupIndex: number, index: number, key: string, value: string | number) => {
+  const updateCondition = (
+    groupIndex: number,
+    index: number,
+    key: keyof Condition,
+    value: string | number
+  ) => {
     const updatedGroups = [...filterGroups];
     const updatedConditions = [...updatedGroups[groupIndex].conditions];
 
     if (key === 'field') {
       const selectedField = columnData.find((field) => field.field === value);
 
-      const newType = selectedField?.filter === 'agBooleanColumnFilter'
-        ? 'boolean'
-        : selectedField?.filter === 'agNumberColumnFilter'
-        ? 'number'
-        : selectedField?.filter === 'agDateColumnFilter'
-        ? 'date'
-        : selectedField?.filter === 'agSetColumnFilter'
-        ? 'boolean'
-        : 'text';
+      const newType =
+        selectedField?.filter === 'agBooleanColumnFilter'
+          ? 'boolean'
+          : selectedField?.filter === 'agNumberColumnFilter'
+          ? 'number'
+          : selectedField?.filter === 'agDateColumnFilter'
+          ? 'date'
+          : selectedField?.filter === 'agSetColumnFilter'
+          ? 'boolean'
+          : 'text';
 
-      const newOperator = newType === 'boolean' ? operators.boolean[0].symbol : operators.text[0].symbol;
+      const newOperator =
+        newType === 'boolean' ? operators.boolean[0].symbol : operators.text[0].symbol;
       const newValue = newType === 'boolean' ? 'true' : '';
 
       updatedConditions[index] = {
@@ -83,7 +109,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
   };
 
   const addCondition = (groupIndex: number) => {
-    const newCondition = { field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' };
+    const newCondition: Condition = { field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' };
     const updatedGroups = [...filterGroups];
     updatedGroups[groupIndex].conditions.push(newCondition);
     setFilterGroups(updatedGroups);
@@ -96,12 +122,12 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
   };
 
   const addFilterGroup = () => {
-    const newGroup = { logic: 'AND', conditions: [] };
+    const newGroup: FilterGroup = { logic: 'AND', conditions: [] };
     setFilterGroups([...filterGroups, newGroup]);
   };
 
   const getChangedFilterData = () => {
-    const filterData: any = {};
+    const filterData: Record<string, any> = {};
 
     filterGroups.forEach((group) => {
       group.conditions.forEach((condition) => {
@@ -129,7 +155,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
       });
     });
 
-    Object.keys(filterData).forEach(field => {
+    Object.keys(filterData).forEach((field) => {
       if (filterData[field].filterType === 'set') {
         filterData[field].values = Array.from(filterData[field].values);
       }
@@ -150,7 +176,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
                 value={group.logic}
                 onChange={(e) => {
                   const updatedGroups = [...filterGroups];
-                  updatedGroups[groupIndex].logic = e.target.value;
+                  updatedGroups[groupIndex].logic = e.target.value as 'AND' | 'OR';
                   setFilterGroups(updatedGroups);
                 }}
                 className='mb-4'
@@ -236,13 +262,8 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
           ))}
 
           <div className="actions">
-            <button className='btn' onClick={() => { changeVisible(false); console.log(getChangedFilterData()); }}>Apply Filters</button>
-            <button className='btn' onClick={() => changeVisible(false)}>Cancel</button>
-          </div>
-
-          <div className="filter-data">
-            <h3>Filter Data:</h3>
-            <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
+            <button className='submit' onClick={() => console.log(getChangedFilterData())}>Submit</button>
+            <button className='cancel' onClick={() => changeVisible(false)}>Cancel</button>
           </div>
         </div>
       </div>
