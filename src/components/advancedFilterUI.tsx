@@ -78,9 +78,19 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
     setFilterGroup({ ...filterGroup, conditions: updatedConditions });
   };
 
-  const addFilter = () => {
+  const addFilter = (index?: number) => {
     const newFilter = { field: '', operator: 'contains', value: '', type: 'text', dateFrom: ''};
-    setFilterGroup({ ...filterGroup, conditions: [...filterGroup.conditions, newFilter] });
+    const updatedConditions = [...filterGroup.conditions];
+    
+    if (index !== undefined) {
+      // Insert new filter after the specified index
+      updatedConditions.splice(index + 1, 0, newFilter);
+    } else {
+      // If no index is provided, add to the end
+      updatedConditions.push(newFilter);
+    }
+    
+    setFilterGroup({ ...filterGroup, conditions: updatedConditions });
   };
 
   const removeFilter = (index: number) => {
@@ -142,9 +152,6 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
   
     return filterData;
   };
-  
-  
-  
 
   return (
     visible && (
@@ -163,7 +170,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
             </select>
 
             {filterGroup.conditions.length === 0 && (
-              <button className='circleBtn' onClick={addFilter}>+</button>
+              <button className='circleBtn' onClick={() => addFilter()}>+</button>
             )}
 
             {filterGroup.conditions.map((condition, index) => (
@@ -228,7 +235,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
 
                 <div className="filter-condition-btn">
                   <button className='circleBtn' onClick={() => removeFilter(index)}>-</button>
-                  <button className='circleBtn' onClick={() => addFilter()}>+</button>
+                  <button className='circleBtn' onClick={() => addFilter(index)}>+</button> {/* Pass index to addFilter */}
                 </div>
               </div>
             ))}
@@ -240,7 +247,7 @@ const AdvancedFilterUI = ({ visible, changeVisible, object, columnData }: Advanc
           </div>
 
           <div className="filter-data">
-            <h3>Changed Filter Data Object:</h3>
+            <h3>Filter Data:</h3>
             <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
           </div>
         </div>
