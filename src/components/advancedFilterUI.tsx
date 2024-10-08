@@ -97,8 +97,15 @@ const AdvancedFilterUI = ({
 
   const removeCondition = (groupIndex: number, index: number) => {
     const updatedGroups = [...filterGroups];
-    updatedGroups[groupIndex].conditions.splice(index, 1);
-    setFilterGroups(updatedGroups);
+    updatedGroups[groupIndex].conditions.splice(index, 1); // Remove the specified condition
+
+    // Check if there are no conditions left in the group
+    if (updatedGroups[groupIndex].conditions.length === 0) {
+      // If no conditions left, remove the group
+      updatedGroups.splice(groupIndex, 1); // Remove the group
+    }
+
+    setFilterGroups(updatedGroups); // Update the state with the modified groups
   };
 
   const addFilterGroup = () => {
@@ -162,13 +169,16 @@ const AdvancedFilterUI = ({
                       value={condition.operator}
                       onChange={(e) => updateCondition(groupIndex, index, 'operator', e.target.value)}
                     >
-                      {(condition.type === 'number'
-                        ? operators.number
-                        : condition.type === 'date'
-                        ? operators.date
-                        : condition.type === 'boolean'
-                        ? operators.boolean
-                        : operators.text
+                      {(condition.field === ''
+                        ? [{ symbol: 'Select field' }] // Set default option
+                        : (condition.type === 'number'
+                          ? operators.number
+                          : condition.type === 'date'
+                          ? operators.date
+                          : condition.type === 'boolean'
+                          ? operators.boolean
+                          : operators.text
+                        )
                       ).map(({ symbol }) => (
                         <option key={symbol} value={symbol}>
                           {symbol}
@@ -191,7 +201,7 @@ const AdvancedFilterUI = ({
                         onChange={(e) => updateCondition(groupIndex, index, 'value', e.target.value)}
                       >
                         <option value="">Select boolean</option>
-                        <option value="true">True</option>
+                        <option value="true"></option>
                         <option value="false">False</option>
                       </select>
                     ) : (
@@ -210,10 +220,12 @@ const AdvancedFilterUI = ({
                 </div>
               ))}
 
-              {/* Button to add a new filter group */}
-              <button onClick={addFilterGroup}>Add Filter Group</button>
             </div>
           ))}
+
+
+          {/* Button to add a new filter group */}
+          <button onClick={addFilterGroup}>Add Filter Group</button>
 
           <div className="actions">
             <button className='submit' onClick={() => console.log(JSON.stringify(getChangedFilterData(), null, 2))}>Submit</button>
