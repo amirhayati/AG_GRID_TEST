@@ -4,10 +4,8 @@ import { AdvancedFilterUIType, Condition, FilterGroup } from './advancedFilterUI
 
 const initialFilterGroup: FilterGroup = {
   logic: 'AND',
-  conditions: [],
+  conditions: [{ field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' }], // Default condition
 };
-
-const initialFilterGroups: FilterGroup[] = [initialFilterGroup]; // Start with one filter group
 
 const AdvancedFilterUI = ({
   visible,
@@ -15,20 +13,20 @@ const AdvancedFilterUI = ({
   object,
   columnData,
 }: AdvancedFilterUIType) => {
-  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>(initialFilterGroups);
+  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([initialFilterGroup]);
 
   useEffect(() => {
     if (object && Object.keys(object).length > 0) {
-      const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => { // Change made here
+      const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => {
         const { filterType, type } = filter;
-  
+
         const condition: Condition = {
           field,
           operator: operatorSymbols[type] || type,
           type: filterType,
           value: filter.filter || '',
         };
-  
+
         // Handle specific filter types
         if (filterType === 'date') {
           condition.dateFrom = filter.dateFrom || '';
@@ -42,15 +40,14 @@ const AdvancedFilterUI = ({
           condition.operator = validModels[0]?.type || 'contains';
           condition.value = validModels[0]?.filter || '';
         }
-  
+
         return [condition];
       });
       setFilterGroups([{ logic: 'AND', conditions: newConditions }]);
     } else {
-      setFilterGroups(initialFilterGroups);
+      setFilterGroups([initialFilterGroup]);
     }
   }, [object]);
-  
 
   const updateCondition = (
     groupIndex: number,
@@ -63,20 +60,17 @@ const AdvancedFilterUI = ({
 
     if (key === 'field') {
       const selectedField = columnData.find((field) => field.field === value);
+      const newType = selectedField?.filter === 'agBooleanColumnFilter'
+        ? 'boolean'
+        : selectedField?.filter === 'agNumberColumnFilter'
+        ? 'number'
+        : selectedField?.filter === 'agDateColumnFilter'
+        ? 'date'
+        : selectedField?.filter === 'agSetColumnFilter'
+        ? 'boolean'
+        : 'text';
 
-      const newType =
-        selectedField?.filter === 'agBooleanColumnFilter'
-          ? 'boolean'
-          : selectedField?.filter === 'agNumberColumnFilter'
-          ? 'number'
-          : selectedField?.filter === 'agDateColumnFilter'
-          ? 'date'
-          : selectedField?.filter === 'agSetColumnFilter'
-          ? 'boolean'
-          : 'text';
-
-      const newOperator =
-        newType === 'boolean' ? operators.boolean[0].symbol : operators.text[0].symbol;
+      const newOperator = newType === 'boolean' ? operators.boolean[0].symbol : operators.text[0].symbol;
       const newValue = newType === 'boolean' ? 'true' : '';
 
       updatedConditions[index] = {
@@ -108,43 +102,21 @@ const AdvancedFilterUI = ({
   };
 
   const addFilterGroup = () => {
-    const newGroup: FilterGroup = { logic: 'AND', conditions: [] };
+    const newGroup: FilterGroup = { logic: 'AND', conditions: [{ field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' }] }; // Start with a default condition
     setFilterGroups([...filterGroups, newGroup]);
   };
 
   const getChangedFilterData = () => {
-    const filterData: Record<string, any> = {};
-
-    filterGroups.forEach((group) => {
-      group.conditions.forEach((condition) => {
-        const { field, operator, value, type, dateFrom } = condition;
-        if (field) {
-          if (type === 'date') {
-            if (!filterData[field]) {
-              filterData[field] = { filterType: 'date', dateRanges: [] };
-            }
-            filterData[field].dateRanges.push({ dateFrom, type: operator });
-          } else if (type === 'boolean') {
-            if (!filterData[field]) {
-              filterData[field] = { filterType: 'set', type: operator, values: new Set() };
-            }
-            if (value) {
-              filterData[field].values.add(value);
-            }
-          } else {
-            if (!filterData[field]) {
-              filterData[field] = { filterType: type, filters: [] };
-            }
-            filterData[field].filters.push({ type: operator, filter: value });
-          }
-        }
-      });
-    });
-
-    Object.keys(filterData).forEach((field) => {
-      if (filterData[field].filterType === 'set') {
-        filterData[field].values = Array.from(filterData[field].values);
-      }
+    const filterData = filterGroups.map(group => {
+      return {
+        filterType: group.conditions[0]?.type || 'text', // Set default filter type if conditions are empty
+        operator: group.logic, // Use logic (AND/OR)
+        conditions: group.conditions.map(condition => ({
+          filterType: condition.type, // Type of the filter
+          type: condition.operator, // Type of operation (contains, equals, etc.)
+          filter: condition.value // The value to filter on
+        })).filter(condition => condition.filter !== '') // Exclude empty filters
+      };
     });
 
     return filterData;
@@ -154,7 +126,7 @@ const AdvancedFilterUI = ({
     visible && (
       <div className='fixed z-50 w-screen h-screen flex-center overflow-scroll'>
         <div className='absolute inset-0 z-10' onClick={() => changeVisible(false)} />
-        
+
         <div className="filter-builder w-3/4 max-h-[80vh] overflow-y-scroll z-20">
           {filterGroups.map((group, groupIndex) => (
             <div key={groupIndex} className="filter-group">
@@ -171,10 +143,6 @@ const AdvancedFilterUI = ({
                 <option value="OR">OR</option>
               </select>
 
-              {group.conditions.length === 0 && (
-                <button className='circleBtn' onClick={() => addCondition(groupIndex)}>+</button>
-              )}
-
               {group.conditions.map((condition, index) => (
                 <div key={index} className="filter-condition">
                   <div className="filter-condition-selections">
@@ -189,7 +157,7 @@ const AdvancedFilterUI = ({
                         </option>
                       ))}
                     </select>
-                    
+
                     <select
                       value={condition.operator}
                       onChange={(e) => updateCondition(groupIndex, index, 'operator', e.target.value)}
@@ -242,18 +210,17 @@ const AdvancedFilterUI = ({
                 </div>
               ))}
 
-              {/* Button to add a new FilterGroup after the current one */}
-              <button className='circleBtn' onClick={addFilterGroup}>+</button>
+              {/* Button to add a new filter group */}
+              <button onClick={addFilterGroup}>Add Filter Group</button>
             </div>
           ))}
 
           <div className="actions">
-            <button className='submit' onClick={() => console.log(getChangedFilterData())}>Submit</button>
+            <button className='submit' onClick={() => console.log(JSON.stringify(getChangedFilterData(), null, 2))}>Submit</button>
             <button className='cancel' onClick={() => changeVisible(false)}>Cancel</button>
           </div>
 
           <div className="filter-data">
-            <h3>Filter Data:</h3>
             <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
           </div>
         </div>
