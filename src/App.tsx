@@ -154,7 +154,7 @@ const Home: React.FC = () => {
           rowData={paginatedData}
           columnDefs={columnData}
           pagination={false}
-          localeText={AG_GRID_LOCALE_IR}
+          // localeText={AG_GRID_LOCALE_IR}
           defaultColDef={defaultColDef}
           pivotMode={false}
           onGridReady={onGridReady}  // Set your default filter model

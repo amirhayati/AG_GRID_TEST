@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { operatorSymbols, operators } from './advancedFilterUI/utils/operators.ts';
 import { AdvancedFilterUIType, Condition, FilterGroup } from './advancedFilterUI/type/type.ts';
+import { ImBlocked } from "react-icons/im";
 
 const initialFilterGroup: FilterGroup = {
   logic: 'AND',
-  conditions: [{ field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' }], // Default condition
+  conditions: [{ field: '', operator: '', value: '', type: 'text', dateFrom: '' }], // Default condition
 };
 
 const AdvancedFilterUI = ({
@@ -37,7 +38,7 @@ const AdvancedFilterUI = ({
           }
         } else if (filterType === 'multi') {
           const validModels = filter.filterModels.filter((model) => model !== null);
-          condition.operator = validModels[0]?.type || 'contains';
+          condition.operator = validModels[0]?.type || '';
           condition.value = validModels[0]?.filter || '';
         }
 
@@ -89,7 +90,7 @@ const AdvancedFilterUI = ({
   };
 
   const addCondition = (groupIndex: number) => {
-    const newCondition: Condition = { field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' };
+    const newCondition: Condition = { field: '', operator: '', value: '', type: 'text', dateFrom: '' };
     const updatedGroups = [...filterGroups];
     updatedGroups[groupIndex].conditions.push(newCondition);
     setFilterGroups(updatedGroups);
@@ -109,7 +110,7 @@ const AdvancedFilterUI = ({
   };
 
   const addFilterGroup = () => {
-    const newGroup: FilterGroup = { logic: 'AND', conditions: [{ field: '', operator: 'contains', value: '', type: 'text', dateFrom: '' }] }; // Start with a default condition
+    const newGroup: FilterGroup = { logic: 'AND', conditions: [{ field: '', operator: '', value: '', type: 'text', dateFrom: '' }] }; // Start with a default condition
     setFilterGroups([...filterGroups, newGroup]);
   };
 
@@ -119,6 +120,7 @@ const AdvancedFilterUI = ({
         filterType: group.conditions[0]?.type || 'text', // Set default filter type if conditions are empty
         operator: group.logic, // Use logic (AND/OR)
         conditions: group.conditions.map(condition => ({
+          field: condition.field,
           filterType: condition.type, // Type of the filter
           type: condition.operator, // Type of operation (contains, equals, etc.)
           filter: condition.value // The value to filter on
@@ -186,31 +188,37 @@ const AdvancedFilterUI = ({
                       ))}
                     </select>
 
-                    {condition.type === 'date' ? (
-                      <div className="date-filters">
+                    {/* Hide the rest of the UI until operator is selected */}
+                    {
+                      condition.operator === '' ? (
+                        // Placeholder icon when operator is not selected
+                        <ImBlocked />
+                      ) : condition.type === 'date' ? (
+                        <div className="date-filters">
+                          <input
+                            type="date"
+                            value={condition.dateFrom || ''}
+                            onChange={(e) => updateCondition(groupIndex, index, 'dateFrom', e.target.value)}
+                            placeholder="From Date"
+                          />
+                        </div>
+                      ) : condition.type === 'boolean' ? (
+                        <select
+                          value={condition.value || ''}
+                          onChange={(e) => updateCondition(groupIndex, index, 'value', e.target.value)}
+                        >
+                          <option value="">Select boolean</option>
+                          <option value="true">True</option>
+                          <option value="false">False</option>
+                        </select>
+                      ) : (
                         <input
-                          type="date"
-                          value={condition.dateFrom || ''}
-                          onChange={(e) => updateCondition(groupIndex, index, 'dateFrom', e.target.value)}
-                          placeholder="From Date"
+                          type={condition.type === 'number' ? 'number' : 'text'}
+                          value={condition.value}
+                          onChange={(e) => updateCondition(groupIndex, index, 'value', condition.type === 'number' ? Number(e.target.value) : e.target.value)}
                         />
-                      </div>
-                    ) : condition.type === 'boolean' ? (
-                      <select
-                        value={condition.value || ''}
-                        onChange={(e) => updateCondition(groupIndex, index, 'value', e.target.value)}
-                      >
-                        <option value="">Select boolean</option>
-                        <option value="true"></option>
-                        <option value="false">False</option>
-                      </select>
-                    ) : (
-                      <input
-                        type={condition.type === 'number' ? 'number' : 'text'}
-                        value={condition.value}
-                        onChange={(e) => updateCondition(groupIndex, index, 'value', condition.type === 'number' ? Number(e.target.value) : e.target.value)}
-                      />
-                    )}
+                      )
+                    }
                   </div>
 
                   <div className="filter-condition-btn">
@@ -219,17 +227,15 @@ const AdvancedFilterUI = ({
                   </div>
                 </div>
               ))}
-
             </div>
           ))}
 
-
           {/* Button to add a new filter group */}
-          <button onClick={addFilterGroup}>Add Filter Group</button>
+          <button className='actionsBtn' onClick={addFilterGroup}>Add Filter Group</button>
 
           <div className="actions">
-            <button className='submit' onClick={() => console.log(JSON.stringify(getChangedFilterData(), null, 2))}>Submit</button>
-            <button className='cancel' onClick={() => changeVisible(false)}>Cancel</button>
+            <button className='actionsBtn' onClick={() => console.log(JSON.stringify(getChangedFilterData(), null, 2))}>Submit</button>
+            <button className='actionsBtn' onClick={() => changeVisible(false)}>Cancel</button>
           </div>
 
           <div className="filter-data">

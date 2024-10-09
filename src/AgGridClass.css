@@ -19,7 +19,7 @@
 
 .filter-builder {
     padding: 20px;
-    background-color: #2a2a3b;
+    background-color: #3a3a4a;
     border-radius: 10px;
     color: white;
     font-size: 14px;
@@ -44,6 +44,8 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     gap: 1rem;
 }
 
@@ -96,6 +98,15 @@
 .actions {
     display: flex;
     gap: 10px;
+    gap:1rem;
+    margin: .5rem 0;
+}
+
+.actionsBtn {
+    margin-top: 1rem;
+    padding: 4px 20px;
+    border-radius: 5px;
+    background-color: #242431;
 }
 
 select, input {
