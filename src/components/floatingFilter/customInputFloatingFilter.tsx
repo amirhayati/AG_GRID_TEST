@@ -6,17 +6,26 @@ const CustomInputFloatingFilter: React.FC<IFilterComp> = (props) => {
 
   const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-
-    console.log("Typing data:", value); // Log typing data
-
     // Update the filter model to use 'contains'
-    props.parentFilterInstance((instance: any) => {
-      instance.setModel(value ? { filter: value, type: 'contains' } : null); // Set type to 'contains'
-      instance.onUiChanged(); // Notify the grid to update
-    });
+    updateFilterModel(value);
+  };
 
-    // Trigger the grid to refresh the filter
-    props.api.onFilterChanged();
+  const onKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.code === 'Enter') {
+      const value = inputRef.current?.value || '';
+      // Update the filter model when Enter is pressed
+      updateFilterModel(value);
+
+      console.log(value)
+    }
+  };
+
+  const updateFilterModel = (value: string) => {
+    props.parentFilterInstance((instance: any) => {
+      instance.setModel(value ? { filter: value, type: 'contains' } : null);
+      instance.onUiChanged();
+    });
+    props.api.onFilterChanged(); // Notify the grid to update
   };
 
   useEffect(() => {
@@ -28,8 +37,9 @@ const CustomInputFloatingFilter: React.FC<IFilterComp> = (props) => {
   return (
     <input
       ref={inputRef}
-      type="text" // Text input for alphanumeric filtering
+      type="text"
       onChange={onInputChange}
+      onKeyPress={onKeyPress} // Listen for key presses
       className='w-full h-[32px] bg-white border-2 place-self-center px-1'
     />
   );

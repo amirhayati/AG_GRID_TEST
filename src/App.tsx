@@ -55,22 +55,25 @@ const Home: React.FC = () => {
     setFloatingFilterModel(newFilterModel);
     applyFilterModel(newFilterModel); 
   };
+  
 
   const getFilterModel = () => {
     if (gridRef.current) {
       const filterModel = gridRef.current.api.getFilterModel();
       console.log('Floating Filter model:', filterModel);
-
+      
       Object.keys(filterModel).forEach((key) => {
         const model = filterModel[key];
-        if (!model.filterType) {
-          model.filterType = 'contains'; // Ensure 'contains' filter type for text
+        if (!model.type) {
+          model.type = 'contains'; // Ensure 'contains' filter type
         }
         gridRef.current.api.getFilterInstance(key, (filterInstance: any) => {
           filterInstance.setModel(model);
           filterInstance.onUiChanged();
         });
       });
+  
+      // Save filter model for advanced filter
       setFloatingFilterModel(filterModel);
       setShowAdvanceFilterModal(!showAdvanceFilterModal);
     }
