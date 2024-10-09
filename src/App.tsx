@@ -9,8 +9,9 @@ import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
 import AdvancedFilterUI from './components/advancedFilterUI.tsx';
 import { handleEntityData } from './components/entityDataHandler.ts';
 import FileUploader from './components/fileUploader.tsx';
-import CustomTextFilter from './components/CustomTextFilter.tsx';
-import CustomInputFloatingFilter from './components/CustomTextFilter.tsx'; // Import your external floating filter
+
+import CustomNumberFloatingFilter from './components/floatingFilter/customInputFloatingFilter.tsx';
+import CustomInputFloatingFilter from './components/floatingFilter/customInputFloatingFilter.tsx';
 
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
@@ -63,7 +64,7 @@ const Home: React.FC = () => {
       Object.keys(filterModel).forEach((key) => {
         const model = filterModel[key];
         if (!model.filterType) {
-          model.filterType = 'contains'; // Ensure 'contains' filter type
+          model.filterType = 'contains'; // Ensure 'contains' filter type for text
         }
         gridRef.current.api.getFilterInstance(key, (filterInstance: any) => {
           filterInstance.setModel(model);
@@ -86,13 +87,13 @@ const Home: React.FC = () => {
     if (col.filter === "agTextColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomInputFloatingFilter, // Use your external floating filter
+        floatingFilterComponent: CustomInputFloatingFilter, // Use your custom text floating filter
       };
     }
-    if (col.filter === "agNumberColumnFilter" || col.filter === "agMultiColumnFilter") {
+    if (col.filter === "agNumberColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomTextFilter, 
+        floatingFilterComponent: CustomNumberFloatingFilter, // Use your custom number floating filter
       };
     }
     return col;
@@ -112,7 +113,9 @@ const Home: React.FC = () => {
         onFilterChange={handleFilterChange} 
       />
 
-      <button onClick={getFilterModel} className='border-2 rounded-md p-2'>{showAdvanceFilterModal ? 'عدم نمایش لیست فیلتر' : 'نمایش لیست فیلتر'}</button>
+      <button onClick={getFilterModel} className='border-2 rounded-md p-2'>
+        {showAdvanceFilterModal ? 'عدم نمایش لیست فیلتر' : 'نمایش لیست فیلتر'}
+      </button>
 
       <div style={{ width: '100wh', height: '85vh' }} className={`ag-theme-quartz`}>
         <AgGridReact
@@ -120,7 +123,6 @@ const Home: React.FC = () => {
           rowData={paginatedData}
           columnDefs={updatedColumnData}
           pagination={false}
-          frameworkComponents={{ CustomTextFilter }}
           defaultColDef={defaultColDef}
           pivotMode={false}
           onGridReady={onGridReady}
