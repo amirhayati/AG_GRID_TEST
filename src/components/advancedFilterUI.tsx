@@ -13,6 +13,7 @@ const AdvancedFilterUI = ({
   changeVisible,
   object,
   columnData,
+  onFilterChange,
 }: AdvancedFilterUIType) => {
   const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([initialFilterGroup]);
 
@@ -131,6 +132,12 @@ const AdvancedFilterUI = ({
     return filterData;
   };
 
+  const handleSubmit = () => {
+    const filterData = getChangedFilterData();
+    onFilterChange(filterData); // Send filter data to parent (App.js)
+    changeVisible(false); // Close the modal after submission
+  };
+
   return (
     visible && (
       <div className='fixed z-50 w-screen h-screen flex-center overflow-scroll'>
@@ -234,13 +241,13 @@ const AdvancedFilterUI = ({
           <button className='actionsBtn' onClick={addFilterGroup}>Add Filter Group</button>
 
           <div className="actions">
-            <button className='actionsBtn' onClick={() => console.log(JSON.stringify(getChangedFilterData(), null, 2))}>Submit</button>
-            <button className='actionsBtn' onClick={() => changeVisible(false)}>Cancel</button>
-          </div>
+          <button className='actionsBtn' onClick={handleSubmit}>Submit</button> 
+          <button className='actionsBtn' onClick={() => changeVisible(false)}>Cancel</button>
+        </div>
 
-          <div className="filter-data">
+          {/* <div className="filter-data">
             <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
-          </div>
+          </div> */}
         </div>
       </div>
     )

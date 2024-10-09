@@ -47,7 +47,23 @@ const Home: React.FC = () => {
 
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
-      gridRef.current.api.setFilterModel(filterModel);
+      // Apply each filter to the grid
+      filterModel.forEach((filter: any) => {
+        filter.conditions.forEach((condition: any) => {
+          gridRef.current.api.getFilterInstance(condition.field, (filterInstance: any) => {
+            const model = {
+              filterType: condition.filterType,
+              type: condition.type,
+              filter: condition.filter,
+            };
+            filterInstance.setModel(model);
+            filterInstance.onUiChanged();
+          });
+        });
+      });
+  
+      // Apply the filter model globally
+      gridRef.current.api.onFilterChanged();
     }
   };
 
@@ -55,13 +71,13 @@ const Home: React.FC = () => {
     setFloatingFilterModel(newFilterModel);
     applyFilterModel(newFilterModel); 
   };
-  
+
 
   const getFilterModel = () => {
     if (gridRef.current) {
       const filterModel = gridRef.current.api.getFilterModel();
       console.log('Floating Filter model:', filterModel);
-      
+
       Object.keys(filterModel).forEach((key) => {
         const model = filterModel[key];
         if (!model.type) {
@@ -113,7 +129,7 @@ const Home: React.FC = () => {
         object={floatingFilterModel}
         columnData={columnData}
         changeVisible={setShowAdvanceFilterModal}
-        onFilterChange={handleFilterChange} 
+        onFilterChange={handleFilterChange}
       />
 
       <button onClick={getFilterModel} className='border-2 rounded-md p-2'>
