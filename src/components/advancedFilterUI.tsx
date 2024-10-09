@@ -17,39 +17,43 @@ const AdvancedFilterUI = ({
 }: AdvancedFilterUIType) => {
   const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([initialFilterGroup]);
 
+  const filteredColumnData = columnData.filter(column => column.floatingFilter === 'true');
+
   useEffect(() => {
     if (object && Object.keys(object).length > 0) {
-      const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => {
-        const { filterType, type } = filter;
+        const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => {
+            const { filterType, type } = filter;
 
-        const condition: Condition = {
-          field,
-          operator: operatorSymbols[type] || type,
-          type: filterType,
-          value: filter.filter || '',
-        };
+            // Create the condition from the filter model
+            const condition: Condition = {
+                field,
+                operator: operatorSymbols[type] || type,
+                type: filterType,
+                value: filter.filter || '',
+            };
 
-        // Handle specific filter types
-        if (filterType === 'date') {
-          condition.dateFrom = filter.dateFrom || '';
-        } else if (filterType === 'set') {
-          condition.value = filter.values[0] || '';
-          if (type === 'boolean') {
-            condition.operator = operators.boolean[0].symbol;
-          }
-        } else if (filterType === 'multi') {
-          const validModels = filter.filterModels.filter((model) => model !== null);
-          condition.operator = validModels[0]?.type || '';
-          condition.value = validModels[0]?.filter || '';
-        }
+            // Handle specific filter types
+            if (filterType === 'date') {
+                condition.dateFrom = filter.dateFrom || '';
+            } else if (filterType === 'set') {
+                condition.value = filter.values[0] || '';
+                if (type === 'boolean') {
+                    condition.operator = operators.boolean[0].symbol;
+                }
+            } else if (filterType === 'multi') {
+                const validModels = filter.filterModels.filter((model) => model !== null);
+                condition.operator = validModels[0]?.type || '';
+                condition.value = validModels[0]?.filter || '';
+            }
 
-        return [condition];
-      });
-      setFilterGroups([{ logic: 'AND', conditions: newConditions }]);
+            return [condition];
+        });
+        setFilterGroups([{ logic: 'AND', conditions: newConditions }]);
     } else {
-      setFilterGroups([initialFilterGroup]);
+        setFilterGroups([initialFilterGroup]);
     }
-  }, [object]);
+  }, [object]); // Ensure this reacts to changes in the object prop
+
 
   const updateCondition = (
     groupIndex: number,
@@ -167,19 +171,20 @@ const AdvancedFilterUI = ({
                       onChange={(e) => updateCondition(groupIndex, index, 'field', e.target.value)}
                     >
                       <option value="">Select your column</option>
-                      {columnData.map((field) => (
+                      {filteredColumnData.map((field) => ( // Use filteredColumnData here
                         <option key={field.field} value={field.field}>
                           {field.field}
                         </option>
                       ))}
                     </select>
 
+                    {/* Other condition selections remain unchanged */}
                     <select
                       value={condition.operator}
                       onChange={(e) => updateCondition(groupIndex, index, 'operator', e.target.value)}
                     >
                       {(condition.field === ''
-                        ? [{ symbol: 'Select field' }] // Set default option
+                        ? [{ symbol: 'Select field' }]
                         : (condition.type === 'number'
                           ? operators.number
                           : condition.type === 'date'
@@ -195,10 +200,9 @@ const AdvancedFilterUI = ({
                       ))}
                     </select>
 
-                    {/* Hide the rest of the UI until operator is selected */}
+                    {/* Rest of the condition UI logic remains unchanged */}
                     {
                       condition.operator === '' ? (
-                        // Placeholder icon when operator is not selected
                         <ImBlocked />
                       ) : condition.type === 'date' ? (
                         <div className="date-filters">
@@ -241,13 +245,13 @@ const AdvancedFilterUI = ({
           <button className='actionsBtn' onClick={addFilterGroup}>Add Filter Group</button>
 
           <div className="actions">
-          <button className='actionsBtn' onClick={handleSubmit}>Submit</button> 
-          <button className='actionsBtn' onClick={() => changeVisible(false)}>Cancel</button>
-        </div>
+            <button className='actionsBtn' onClick={handleSubmit}>Submit</button> 
+            <button className='actionsBtn' onClick={() => changeVisible(false)}>Cancel</button>
+          </div>
 
-          {/* <div className="filter-data">
+          <div className="filter-data">
             <pre>{JSON.stringify(getChangedFilterData(), null, 2)}</pre>
-          </div> */}
+          </div>
         </div>
       </div>
     )
