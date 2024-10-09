@@ -103,20 +103,52 @@ const Home: React.FC = () => {
   }, [floatingFilterModel]);
 
   const updatedColumnData = columnData.map(col => {
+    // Check for text column filter
     if (col.filter === "agTextColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomInputFloatingFilter, // Use your custom text floating filter
+        floatingFilterComponent: CustomInputFloatingFilter, 
       };
     }
+    
+    // Check for number column filter
     if (col.filter === "agNumberColumnFilter") {
       return {
         ...col,
         floatingFilterComponent: CustomNumberFloatingFilter, // Use your custom number floating filter
+        filterParams: {
+          filterOptions: [
+            'equals',
+            'notEqual',
+            'greaterThan',
+            'greaterThanOrEqual',
+            'lessThan',
+            'lessThanOrEqual'
+          ],
+        },
       };
     }
+    
+    // Check for date column filter
+    if (col.filter === "agDateColumnFilter") {
+      return {
+        ...col,
+        filterParams: {
+          filterOptions: [
+            'equals',      
+            'notEqual',
+            'after',
+            'before',
+            'inRange'
+          ],
+        },
+      };
+    }
+  
+    // Return the column unchanged if no filter matches
     return col;
   });
+  
 
   return (
     <div className='space-y-4'>
