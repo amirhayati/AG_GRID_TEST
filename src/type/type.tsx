@@ -57,6 +57,7 @@ export interface EntityListType {
     idField: string;
     IsSerialChanges: boolean;
     buttons: any[];
+    columns: any;
 }
 
 interface PageSize {

@@ -3,28 +3,27 @@ import { ColumnDataType, ColumnStateType, EntityListType } from './type/type';
 import Footer from './components/footer.tsx';
 import { SampleColumnData } from './data/sample.js';
 import { AgGridReact } from 'ag-grid-react';
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
+import "ag-grid-community/styles/ag-grid.css"; 
+import "ag-grid-community/styles/ag-theme-quartz.css"; 
 import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
 import AdvancedFilterUI from './components/advancedFilterUI.tsx';
 import { handleEntityData } from './components/entityDataHandler.ts';
 import FileUploader from './components/fileUploader.tsx';
+import CustomTextFilter from './components/CustomTextFilter.tsx';
+import CustomInputFloatingFilter from './components/CustomTextFilter.tsx'; // Import your external floating filter
 
 const Home: React.FC = () => {
   const [columnData, setColumnData] = useState<ColumnStateType[]>(SampleColumnData);
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
   const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
-  const [initialAdvancedFilterModel, setInitialAdvancedFilterModel] = useState<any>();
   const [floatingFilterModel, setFloatingFilterModel] = useState<any>();
   const gridRef = useRef<AgGridReact>(null);
 
-// Callback for FileUploader to pass entity data
   const handleFileUploadData = (entity: EntityListType) => {
     handleEntityData(entity, setEntityData, setColumnData, entityData);
   };
 
-  // ------ defaultColDef ------
   const defaultColDef = useMemo(() => {
     return {
       flex: 1,
@@ -45,39 +44,63 @@ const Home: React.FC = () => {
       .then((data) => setRowData(data));
   }, []);
 
-
-  // Function to apply filter model to the grid
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
       gridRef.current.api.setFilterModel(filterModel);
     }
   };
 
-  // Handle filter model changes from AdvancedFilterUI
   const handleFilterChange = (newFilterModel: any) => {
     setFloatingFilterModel(newFilterModel);
-    applyFilterModel(newFilterModel); // Apply the new filter model to the grid
+    applyFilterModel(newFilterModel); 
   };
 
   const getFilterModel = () => {
     if (gridRef.current) {
       const filterModel = gridRef.current.api.getFilterModel();
-      setFloatingFilterModel(filterModel);
       console.log('Floating Filter model:', filterModel);
+
+      Object.keys(filterModel).forEach((key) => {
+        const model = filterModel[key];
+        if (!model.filterType) {
+          model.filterType = 'contains'; // Ensure 'contains' filter type
+        }
+        gridRef.current.api.getFilterInstance(key, (filterInstance: any) => {
+          filterInstance.setModel(model);
+          filterInstance.onUiChanged();
+        });
+      });
+      setFloatingFilterModel(filterModel);
       setShowAdvanceFilterModal(!showAdvanceFilterModal);
     }
   };
 
   const onGridReady = useCallback((params) => {
     if (floatingFilterModel) {
-      params.api.setFilterModel(floatingFilterModel); // Apply initial filter model when grid is ready
-      console.log('Applied initial filter model:', floatingFilterModel); // Debugging
+      params.api.setFilterModel(floatingFilterModel);
+      console.log('Applied initial filter model:', floatingFilterModel);
     }
   }, [floatingFilterModel]);
 
+  const updatedColumnData = columnData.map(col => {
+    if (col.filter === "agTextColumnFilter") {
+      return {
+        ...col,
+        floatingFilterComponent: CustomInputFloatingFilter, // Use your external floating filter
+      };
+    }
+    if (col.filter === "agNumberColumnFilter" || col.filter === "agMultiColumnFilter") {
+      return {
+        ...col,
+        floatingFilterComponent: CustomTextFilter, 
+      };
+    }
+    return col;
+  });
+
   return (
     <div className='space-y-4'>
-      <div className={`${showAdvanceFilterModal?'fixed inset-0 blur-lg bg-black opacity-30 z-30':''}`}/>
+      <div className={`${showAdvanceFilterModal ? 'fixed inset-0 blur-lg bg-black opacity-30 z-30' : ''}`} />
 
       <FileUploader onFileUpload={handleFileUploadData} />
 
@@ -86,22 +109,21 @@ const Home: React.FC = () => {
         object={floatingFilterModel}
         columnData={columnData}
         changeVisible={setShowAdvanceFilterModal}
-        onFilterChange={handleFilterChange} // Pass filter change handler
+        onFilterChange={handleFilterChange} 
       />
 
-      {/* ------ Btn to Show Filter Object */}
-      <button onClick={getFilterModel} className='border-2 rounded-md p-2'>{showAdvanceFilterModal?'عدم نمایش لیست فیلتر':'نمایش لیست فیلتر'}</button>
+      <button onClick={getFilterModel} className='border-2 rounded-md p-2'>{showAdvanceFilterModal ? 'عدم نمایش لیست فیلتر' : 'نمایش لیست فیلتر'}</button>
 
       <div style={{ width: '100wh', height: '85vh' }} className={`ag-theme-quartz`}>
         <AgGridReact
           ref={gridRef}
           rowData={paginatedData}
-          columnDefs={columnData}
+          columnDefs={updatedColumnData}
           pagination={false}
-          localeText={AG_GRID_LOCALE_IR}
+          frameworkComponents={{ CustomTextFilter }}
           defaultColDef={defaultColDef}
           pivotMode={false}
-          onGridReady={onGridReady}  // Set your default filter model
+          onGridReady={onGridReady}
         />
       </div>
 
