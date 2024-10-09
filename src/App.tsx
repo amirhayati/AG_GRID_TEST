@@ -67,10 +67,37 @@ const Home: React.FC = () => {
     }
   };
 
-  const handleFilterChange = (newFilterModel: any) => {
-    setFloatingFilterModel(newFilterModel);
-    applyFilterModel(newFilterModel); 
-  };
+const handleFilterChange = (newFilterModel: any[]) => {
+  setFloatingFilterModel((prevModel) => {
+    // Ensure prevModel is an array
+    const currentModel = Array.isArray(prevModel) ? prevModel : [];
+
+    // Create a map for quick lookup of existing filters
+    const modelMap = new Map(currentModel.map((filter) => [filter.field, filter]));
+
+    // Update existing filters or add new ones
+    newFilterModel.forEach((newFilter) => {
+      modelMap.set(newFilter.field, newFilter);
+    });
+
+    // Convert the map back to an array
+    return Array.from(modelMap.values());
+  });
+
+  // Apply the new filter model to the grid
+  if (gridRef.current) {
+    const gridFilterModel: any = {};
+    newFilterModel.forEach((filter) => {
+      gridFilterModel[filter.field] = {
+        filterType: filter.filterType,
+        filter: filter.filter, // Modify based on your filter structure
+      };
+    });
+
+    // Update the grid with the new filter model
+    gridRef.current.api.setFilterModel(gridFilterModel);
+  }
+};
 
 
   const getFilterModel = () => {
@@ -102,21 +129,39 @@ const Home: React.FC = () => {
     }
   }, [floatingFilterModel]);
 
+  const handleFilterChangeFromFloatingFilter = (newFilterModel: any) => {
+    // Update both the grid filter and the AdvancedFilterUI
+    setFloatingFilterModel(newFilterModel);
+    // applyFilterModel(newFilterModel); // Apply filter to the grid
+    
+    // Apply the new filter model to the grid
+    if (gridRef.current) {
+      gridRef.current.api.setFilterModel(newFilterModel);
+    }
+  };
+  
   const updatedColumnData = columnData.map(col => {
     if (col.filter === "agTextColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomInputFloatingFilter, // Use your custom text floating filter
+        floatingFilterComponent: CustomInputFloatingFilter,
+        floatingFilterComponentParams: {
+          onFilterChange: handleFilterChangeFromFloatingFilter, // Pass the handler
+        },
       };
     }
     if (col.filter === "agNumberColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomNumberFloatingFilter, // Use your custom number floating filter
+        floatingFilterComponent: CustomNumberFloatingFilter,
+        floatingFilterComponentParams: {
+          onFilterChange: handleFilterChangeFromFloatingFilter, // Pass the handler
+        },
       };
     }
     return col;
   });
+  
 
   return (
     <div className='space-y-4'>

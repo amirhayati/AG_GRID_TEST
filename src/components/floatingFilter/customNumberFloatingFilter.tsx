@@ -11,10 +11,15 @@ const CustomNumberFloatingFilter: React.FC<IFilterComp> = (props) => {
   };
 
   const onKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.nativeEvent.code === 'Enter'){
+    if (event.nativeEvent.code === 'Enter') {
       const value = inputRef.current?.value || '';
       // Update the filter model when Enter is pressed
       updateFilterModel(value);
+
+      // Clear the input field after pressing Enter
+      if (inputRef.current) {
+        inputRef.current.value = ''; // Clear the input field
+      }
     }
   };
 

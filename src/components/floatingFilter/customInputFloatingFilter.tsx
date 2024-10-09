@@ -16,7 +16,10 @@ const CustomInputFloatingFilter: React.FC<IFilterComp> = (props) => {
       // Update the filter model when Enter is pressed
       updateFilterModel(value);
 
-      console.log(value)
+      // Clear the input field after pressing Enter
+      if (inputRef.current) {
+        inputRef.current.value = ''; // Clear the input field
+      }
     }
   };
 
