@@ -5,11 +5,9 @@ import { SampleColumnData } from './data/sample.js';
 import { AgGridReact } from 'ag-grid-react';
 import "ag-grid-community/styles/ag-grid.css"; 
 import "ag-grid-community/styles/ag-theme-quartz.css"; 
-import { AG_GRID_LOCALE_IR } from '@ag-grid-community/locale';
 import AdvancedFilterUI from './components/advancedFilterUI.tsx';
 import { handleEntityData } from './components/entityDataHandler.ts';
 import FileUploader from './components/fileUploader.tsx';
-
 import CustomNumberFloatingFilter from './components/floatingFilter/customInputFloatingFilter.tsx';
 import CustomInputFloatingFilter from './components/floatingFilter/customInputFloatingFilter.tsx';
 
@@ -18,7 +16,7 @@ const Home: React.FC = () => {
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
   const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
-  const [floatingFilterModel, setFloatingFilterModel] = useState<any>();
+  const [floatingFilterModel, setFloatingFilterModel] = useState<any>({});
   const gridRef = useRef<AgGridReact>(null);
 
   const handleFileUploadData = (entity: EntityListType) => {
@@ -48,20 +46,18 @@ const Home: React.FC = () => {
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
       // Apply each filter to the grid
-      filterModel.forEach((filter: any) => {
-        filter.conditions.forEach((condition: any) => {
-          gridRef.current.api.getFilterInstance(condition.field, (filterInstance: any) => {
-            const model = {
-              filterType: condition.filterType,
-              type: condition.type,
-              filter: condition.filter,
-            };
-            filterInstance.setModel(model);
-            filterInstance.onUiChanged();
-          });
+      filterModel.conditions.forEach((condition: any) => {
+        gridRef.current.api.getFilterInstance(condition.field, (filterInstance: any) => {
+          const model = {
+            filterType: condition.filterType,
+            type: condition.type,
+            filter: condition.filter,
+          };
+          filterInstance.setModel(model);
+          filterInstance.onUiChanged();
         });
       });
-  
+      
       // Apply the filter model globally
       gridRef.current.api.onFilterChanged();
     }
@@ -71,7 +67,6 @@ const Home: React.FC = () => {
     setFloatingFilterModel(newFilterModel);
     applyFilterModel(newFilterModel); 
   };
-
 
   const getFilterModel = () => {
     if (gridRef.current) {
@@ -95,6 +90,44 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleFilterUpdate = (filterModel: any) => {
+    console.log('Incoming Filter Model:', filterModel);
+    
+    if (filterModel && gridRef.current) {
+      const field = filterModel.field;
+  
+      // Check if field is present and retrieve filter instance
+      gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
+        if (filterInstance) {
+          filterInstance.setModel(filterModel);
+          filterInstance.onUiChanged();
+        } else {
+          console.warn(`No filter instance found for field: ${field}`);
+        }
+      });
+  
+      // Update the floatingFilterModel in the state
+      setFloatingFilterModel((prevModel: any) => {
+        // Ensure the existing field array is initialized
+        const updatedFieldModel = Array.isArray(prevModel[field]) ? prevModel[field] : [];
+  
+        // Append the new filter model to the array
+        updatedFieldModel.push(filterModel);
+  
+        return {
+          ...prevModel,
+          [field]: updatedFieldModel, // Use the field name as the key
+        };
+      });
+  
+      // Notify the grid to update
+      gridRef.current.api.onFilterChanged();
+    }
+  };
+  
+  
+  console.log('Incoming Filter Model:', floatingFilterModel);
+
   const onGridReady = useCallback((params) => {
     if (floatingFilterModel) {
       params.api.setFilterModel(floatingFilterModel);
@@ -107,10 +140,12 @@ const Home: React.FC = () => {
     if (col.filter === "agTextColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomInputFloatingFilter, 
+        floatingFilterComponent: (props) => (
+          <CustomInputFloatingFilter {...props} updateFilter={handleFilterUpdate} />
+        ),
       };
     }
-    
+
     // Check for number column filter
     if (col.filter === "agNumberColumnFilter") {
       return {
@@ -128,7 +163,7 @@ const Home: React.FC = () => {
         },
       };
     }
-    
+
     // Check for date column filter
     if (col.filter === "agDateColumnFilter") {
       return {
@@ -185,8 +220,8 @@ const Home: React.FC = () => {
         onRowChange={handleRowChange}
         arrayOfPageSiteValue={[
           { val: 20 },
-          { val: 40 },
-          { val: 80 },
+          { val: 50 },
+          { val: 100 }
         ]}
       />
     </div>
