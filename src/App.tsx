@@ -16,18 +16,26 @@ const Home: React.FC = () => {
   const [entityData, setEntityData] = useState<EntityListType>();
   const [rowData, setRowData] = useState<any[]>([]);
   const [showAdvanceFilterModal, setShowAdvanceFilterModal] = useState<boolean>(false);
-  const [floatingFilterModel, setFloatingFilterModel] = useState<any>({});
+  const [floatingFilterModel, setFloatingFilterModel] = useState<any>({
+    // "mission": [
+    //   { "filterType": "text", "type": "contains", "filter": "v" }
+    // ],
+    // "company": [
+    //   { "filterType": "text", "type": "contains", "filter": "a" },
+    //   { "filterType": "text", "type": "contains", "filter": "b" }
+    // ]
+  });
+  
   const gridRef = useRef<AgGridReact>(null);
+  const floatingFilterRef = useRef(floatingFilterModel);  // Use ref to store the model for comparison
 
   const handleFileUploadData = (entity: EntityListType) => {
     handleEntityData(entity, setEntityData, setColumnData, entityData);
   };
 
-  const defaultColDef = useMemo(() => {
-    return {
-      flex: 1,
-    };
-  }, []);
+  const defaultColDef = useMemo(() => ({
+    flex: 1,
+  }), []);
 
   const [startRow, setStartRow] = useState<number>(0);
   const [endRow, setEndRow] = useState<number>(0);
@@ -38,21 +46,21 @@ const Home: React.FC = () => {
   const paginatedData = rowData.slice(startRow, endRow);
 
   useEffect(() => {
-    fetch('https://www.ag-grid.com/example-assets/space-mission-data.json') 
+    fetch('https://www.ag-grid.com/example-assets/space-mission-data.json')
       .then((resp) => resp.json())
       .then((data) => setRowData(data));
   }, []);
 
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
-      // Apply each filter condition to the grid for multiple columns
-      filterModel.forEach((model: any) => {
-        model.conditions.forEach((condition: any) => {
-          gridRef.current.api.getFilterInstance(condition.field, (filterInstance: any) => {
+      Object.keys(filterModel).forEach((field) => {
+        const filters = filterModel[field];
+        filters.forEach((filter: any) => {
+          gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
             const model = {
-              filterType: condition.filterType,
-              type: condition.type,
-              filter: condition.filter,
+              filterType: filter.filterType,
+              type: filter.type,
+              filter: filter.filter,
             };
             filterInstance.setModel(model);
             filterInstance.onUiChanged();
@@ -60,106 +68,117 @@ const Home: React.FC = () => {
         });
       });
   
-      // Trigger the grid to apply the filters globally
       gridRef.current.api.onFilterChanged();
     }
   };
+
+  const handleFilterChange = (value: string) => {
+    // Update the floating filter model with a new condition
+    const newFilterCondition = {
+      field: "mission",
+      filterType: "text",
+      type: "contains",
+      filter: value,
+    };
+  
+    // Replace or update the filter conditions in floatingFilterModel
+    setFloatingFilterModel(prevState => {
+      // Check if "mission" already has a filter condition
+      const existingConditions = prevState?.conditions || [];
+  
+      // Update existing conditions or add the new condition
+      const updatedConditions = existingConditions.filter(
+        condition => condition.field !== "mission"
+      ).concat(newFilterCondition);
+  
+      // Return the updated floating filter model
+      return {
+        filterType: "text",
+        operator: "AND",
+        conditions: updatedConditions,
+      };
+    });
+  };
+  
+  // When the user presses "Enter", call handleFilterChange with the input value
   
 
-  const handleFilterChange = (newFilterModel: any) => {
-    setFloatingFilterModel(newFilterModel);
-    applyFilterModel(newFilterModel); 
-  };
-
-  const getFilterModel = () => {
+  const getFilterModel = useCallback(() => {
     if (gridRef.current) {
       const filterModel = gridRef.current.api.getFilterModel();
-      console.log('Floating Filter model:', filterModel);
-
+  
       Object.keys(filterModel).forEach((key) => {
         const model = filterModel[key];
         if (!model.type) {
-          model.type = 'contains'; // Ensure 'contains' filter type
+          model.type = 'contains';
         }
         gridRef.current.api.getFilterInstance(key, (filterInstance: any) => {
           filterInstance.setModel(model);
           filterInstance.onUiChanged();
         });
       });
+
+      setFloatingFilterModel((prevModel: any) => {
+        const updatedModel = { ...prevModel };
   
-      // Save filter model for advanced filter
-      setFloatingFilterModel(filterModel);
+        Object.entries(filterModel).forEach(([column, filterData]: [string, any]) => {
+          if (!updatedModel[column]) {
+            updatedModel[column] = [];
+          }
+          updatedModel[column].push({
+            filterType: filterData.filterType,
+            type: filterData.type,
+            filter: filterData.filter,
+          });
+        });
+
+        return updatedModel;
+      });
+
       setShowAdvanceFilterModal(!showAdvanceFilterModal);
     }
-  };
+  }, [floatingFilterModel, showAdvanceFilterModal]);
 
-  const handleFilterUpdate = (filterModel: any) => {
-    console.log('Incoming Filter Model:', filterModel);
-  
+  const handleFilterUpdate = useCallback((filterModel: any) => {
     if (filterModel && gridRef.current) {
       const field = filterModel.field;
   
-      // Check if the filter already exists for the column
       gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
         if (filterInstance) {
           const existingModel = filterInstance.getModel();
-  
-          // Create a new filter model and apply it (this assumes each filter is independent)
           const newModel = {
             field: field,
             filterType: filterModel.filterType,
             type: filterModel.type,
-            filter: filterModel.filter, // Single filter value
+            filter: filterModel.filter,
           };
-  
-          // Set the new filter model (this assumes separate filters for each filter)
+
           filterInstance.setModel(newModel);
-  
-          filterInstance.onUiChanged(); // Update the UI
-        } else {
-          console.warn(`No filter instance found for field: ${field}`);
+          filterInstance.onUiChanged();
         }
       });
   
-      // Update the floatingFilterModel in the state to allow multiple filters per column
       setFloatingFilterModel((prevModel: any) => {
-        // If there are existing filters for this column, append the new one
         const existingFilters = prevModel[field] || [];
-  
-        // Add the new filter to the existing filters array
         const updatedFilters = [
           ...existingFilters,
-          {
-            filterType: filterModel.filterType,
-            type: filterModel.type,
-            filter: filterModel.filter, // Each filter is a separate object
-          },
+          { filterType: filterModel.filterType, type: filterModel.type, filter: filterModel.filter },
         ];
-  
-        return {
-          ...prevModel,
-          [field]: updatedFilters, // Save as an array of filter objects
-        };
+
+        return { ...prevModel, [field]: updatedFilters };
       });
-  
-      // Notify the grid to update
+
       gridRef.current.api.onFilterChanged();
     }
-  };
-  
-  
-  
-  console.log('Incoming Filter Model:', floatingFilterModel);
+  }, []);
 
   const onGridReady = useCallback((params) => {
     if (floatingFilterModel) {
       params.api.setFilterModel(floatingFilterModel);
-      console.log('Applied initial filter model:', floatingFilterModel);
     }
   }, [floatingFilterModel]);
 
   const updatedColumnData = columnData.map(col => {
-    // Check for text column filter
     if (col.filter === "agTextColumnFilter") {
       return {
         ...col,
@@ -169,44 +188,31 @@ const Home: React.FC = () => {
       };
     }
 
-    // Check for number column filter
     if (col.filter === "agNumberColumnFilter") {
       return {
         ...col,
-        floatingFilterComponent: CustomNumberFloatingFilter, // Use your custom number floating filter
+        floatingFilterComponent: CustomNumberFloatingFilter,
         filterParams: {
           filterOptions: [
-            'equals',
-            'notEqual',
-            'greaterThan',
-            'greaterThanOrEqual',
-            'lessThan',
-            'lessThanOrEqual'
+            'equals', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual'
           ],
         },
       };
     }
 
-    // Check for date column filter
     if (col.filter === "agDateColumnFilter") {
       return {
         ...col,
         filterParams: {
           filterOptions: [
-            'equals',      
-            'notEqual',
-            'after',
-            'before',
-            'inRange'
+            'equals', 'notEqual', 'after', 'before', 'inRange'
           ],
         },
       };
     }
   
-    // Return the column unchanged if no filter matches
     return col;
   });
-  
 
   return (
     <div className='space-y-4'>
