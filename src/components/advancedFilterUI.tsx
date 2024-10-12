@@ -156,10 +156,10 @@ const AdvancedFilterUI = ({
               c.value === condition.value
           ) === index
       );
-
+  
       return {
-        filterType: group.conditions[0]?.type || 'text', // Set default filter type if conditions are empty
-        operator: group.logic, // Use logic (AND/OR)
+        filterType: group.conditions[0]?.type || 'text', // Default filter type
+        operator: group.logic, // Logic (AND/OR)
         conditions: uniqueConditions.map((condition) => ({
           field: condition.field,
           filterType: condition.type, // Type of the filter
@@ -168,9 +168,10 @@ const AdvancedFilterUI = ({
         })).filter((condition) => condition.filter !== ''), // Exclude empty filters
       };
     });
-
+  
     return filterData;
   };
+  
 
   const handleSubmit = () => {
     const filterData = getChangedFilterData();

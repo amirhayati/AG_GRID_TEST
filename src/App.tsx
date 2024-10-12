@@ -51,54 +51,51 @@ const Home: React.FC = () => {
       .then((data) => setRowData(data));
   }, []);
 
+  const handleFilterChange = (filterModel: any) => {
+    if (gridRef.current) {
+      Object.keys(filterModel).forEach((field) => {
+        const filters = filterModel[field];
+        if (Array.isArray(filters)) {
+          filters.forEach((filter: any) => {
+            gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
+              const model = {
+                filterType: filter.filterType,
+                type: filter.type,
+                filter: filter.filter,
+              };
+              filterInstance.setModel(model);
+              filterInstance.onUiChanged();
+            });
+          });
+        }
+      });
+      gridRef.current.api.onFilterChanged();
+    }
+  };
+  
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
       Object.keys(filterModel).forEach((field) => {
         const filters = filterModel[field];
-        filters.forEach((filter: any) => {
-          gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
-            const model = {
-              filterType: filter.filterType,
-              type: filter.type,
-              filter: filter.filter,
-            };
-            filterInstance.setModel(model);
-            filterInstance.onUiChanged();
+        if (Array.isArray(filters)) {
+          filters.forEach((filter: any) => {
+            gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
+              const model = {
+                filterType: filter.filterType,
+                type: filter.type,
+                filter: filter.filter,
+              };
+              filterInstance.setModel(model);
+              filterInstance.onUiChanged();
+            });
           });
-        });
+        }
       });
   
       gridRef.current.api.onFilterChanged();
     }
   };
-
-  const handleFilterChange = (value: string) => {
-    // Update the floating filter model with a new condition
-    const newFilterCondition = {
-      field: "mission",
-      filterType: "text",
-      type: "contains",
-      filter: value,
-    };
   
-    // Replace or update the filter conditions in floatingFilterModel
-    setFloatingFilterModel(prevState => {
-      // Check if "mission" already has a filter condition
-      const existingConditions = prevState?.conditions || [];
-  
-      // Update existing conditions or add the new condition
-      const updatedConditions = existingConditions.filter(
-        condition => condition.field !== "mission"
-      ).concat(newFilterCondition);
-  
-      // Return the updated floating filter model
-      return {
-        filterType: "text",
-        operator: "AND",
-        conditions: updatedConditions,
-      };
-    });
-  };
   
   // When the user presses "Enter", call handleFilterChange with the input value
   
