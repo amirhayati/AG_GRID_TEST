@@ -52,26 +52,55 @@ const Home: React.FC = () => {
   }, []);
 
   const handleFilterChange = (filterModel: any) => {
+    console.log('Parent received filter data:', filterModel);
+    
     if (gridRef.current) {
-      Object.keys(filterModel).forEach((field) => {
-        const filters = filterModel[field];
-        if (Array.isArray(filters)) {
-          filters.forEach((filter: any) => {
-            gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
-              const model = {
-                filterType: filter.filterType,
-                type: filter.type,
-                filter: filter.filter,
-              };
-              filterInstance.setModel(model);
-              filterInstance.onUiChanged();
+        // Iterate through the filterModel object to apply the filter settings to the grid
+        Object.keys(filterModel).forEach((field) => {
+            const filters = filterModel[field];  // Get filters for the current field
+            
+            if (Array.isArray(filters)) {
+                filters.forEach((filter: any) => {
+                    gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
+                        const model = {
+                            filterType: filter.filterType,
+                            type: filter.type,
+                            filter: filter.filter,
+                        };
+                        filterInstance.setModel(model);
+                        filterInstance.onUiChanged();
+                    });
+                });
+            }
+        });
+
+        // Update the floatingFilterModel state after applying the filters to the grid
+        setFloatingFilterModel((prevModel: any) => {
+            const updatedModel = { ...prevModel };
+
+            // Ensure the model includes the correct filters for the given field
+            Object.keys(filterModel).forEach((field) => {  // Use `field` here
+                const filters = filterModel[field];
+
+                if (!updatedModel[field]) {
+                    updatedModel[field] = [];
+                }
+
+                updatedModel[field] = filters.map((filter: any) => ({
+                    filterType: filter.filterType,
+                    type: filter.type,
+                    filter: filter.filter,
+                }));
             });
-          });
-        }
-      });
-      gridRef.current.api.onFilterChanged();
+
+            return updatedModel;
+        });
+
+        gridRef.current.api.onFilterChanged();
     }
-  };
+};
+
+
   
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {

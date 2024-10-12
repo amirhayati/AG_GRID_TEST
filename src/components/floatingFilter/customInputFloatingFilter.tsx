@@ -4,6 +4,7 @@ import { IFilterComp } from 'ag-grid-community';
 interface CustomInputFloatingFilterProps {
   updateFilter: (filterModel: any) => void;
   column: any; // Assuming this contains column data like `colId`
+  api: any; // ag-Grid API reference
 }
 
 const CustomInputFloatingFilter: React.FC<CustomInputFloatingFilterProps> = (props) => {
@@ -11,60 +12,56 @@ const CustomInputFloatingFilter: React.FC<CustomInputFloatingFilterProps> = (pro
 
   const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-  
-    // Only update the filter model if the value is not empty
-    if (value) {
-      const filterModel = {
-        field: props.column.colId, // Ensure you're using the correct field identifier
-        filterType: 'text',        // Ensure this matches your filter type
-        type: 'contains',          // Filter type for the condition
-        filter: value              // The input value
-      };
-      props.updateFilter(filterModel); // Call the update method with the new model
-    }
+
+    // Use ag-Grid's built-in filter behavior by setting the filter model
+    const filterModel = {
+      [props.column.colId]: {
+        type: 'contains',
+        filter: value
+      }
+    };
+
+    // Update the ag-Grid filter model
+    props.api.setFilterModel(filterModel);
   };
-  
+
   const onKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.code === 'Enter') {
       const value = inputRef.current?.value || '';
-  
-      // Only update if there is a value
-      if (value) {
-        const filterModel = {
-          field: props.column.colId, // Use the correct column identifier
-          filterType: 'text',        // Ensure this matches the column's filter type
-          type: 'contains',          // Filter type for the condition
-          filter: value              // The input value
-        };
-  
-        // Log the filter model before updating
-        console.log('Custom input - Filter model before update on enter:', filterModel);
-  
-        // Call the update method to append the new model
-        props.updateFilter(filterModel);
-  
-        // Clear the input field after pressing Enter
-        if (inputRef.current) {
-          inputRef.current.value = '';
+
+      // Use ag-Grid's built-in filter behavior by setting the filter model
+      const filterModel = {
+        [props.column.colId]: {
+          type: 'contains',
+          filter: value
         }
+      };
+
+      // Update the ag-Grid filter model on Enter press
+      props.api.setFilterModel(filterModel);
+
+      // Clear the input field after pressing Enter
+      if (inputRef.current) {
+        inputRef.current.value = '';
       }
     }
   };
-  
 
   useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.value = props.filterText || '';
+      const currentFilterModel = props.api.getFilterModel();
+      const filterValue = currentFilterModel?.[props.column.colId]?.filter || '';
+      inputRef.current.value = filterValue;
     }
-  }, [props.filterText]);
+  }, [props.api, props.column.colId]);
 
   return (
     <input
       ref={inputRef}
       type="text"
-    //   onChange={onInputChange}
+      onChange={onInputChange}
       onKeyPress={onKeyPress}
-      className='w-full h-[32px] bg-white border-2 place-self-center px-1'
+      className="w-full h-[32px] bg-white border-2 place-self-center px-1"
     />
   );
 };

@@ -33,7 +33,7 @@ const AdvancedFilterUI = ({
           return condition;
         });
       });
-
+  
       // Prevent duplicate conditions by checking existing filterGroups
       const uniqueConditions = newConditions.filter((condition, index, self) =>
         self.findIndex(
@@ -43,13 +43,13 @@ const AdvancedFilterUI = ({
             c.value === condition.value
         ) === index
       );
-
+  
       if (uniqueConditions.length > 0) {
         setFilterGroups([{ logic: 'AND', conditions: uniqueConditions }]);
       }
     }
   }, [object, columnData]);
-
+  
   const addCondition = (groupIndex: number) => {
     const newCondition: Condition = { field: '', operator: '', value: '', type: 'text', dateFrom: '' };
     const updatedGroups = [...filterGroups];
