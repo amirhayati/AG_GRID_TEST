@@ -99,22 +99,46 @@ const Home: React.FC = () => {
     if (filterModel && gridRef.current) {
       const field = filterModel.field;
   
-      // Check if field is present and retrieve filter instance
+      // Check if the filter already exists for the column
       gridRef.current.api.getFilterInstance(field, (filterInstance: any) => {
         if (filterInstance) {
-          filterInstance.setModel(filterModel);
-          filterInstance.onUiChanged();
+          const existingModel = filterInstance.getModel();
+  
+          // Create a new filter model and apply it (this assumes each filter is independent)
+          const newModel = {
+            field: field,
+            filterType: filterModel.filterType,
+            type: filterModel.type,
+            filter: filterModel.filter, // Single filter value
+          };
+  
+          // Set the new filter model (this assumes separate filters for each filter)
+          filterInstance.setModel(newModel);
+  
+          filterInstance.onUiChanged(); // Update the UI
         } else {
           console.warn(`No filter instance found for field: ${field}`);
         }
       });
   
-      // Update the floatingFilterModel in the state
+      // Update the floatingFilterModel in the state to allow multiple filters per column
       setFloatingFilterModel((prevModel: any) => {
-        // Keep existing filters for other fields intact
+        // If there are existing filters for this column, append the new one
+        const existingFilters = prevModel[field] || [];
+  
+        // Add the new filter to the existing filters array
+        const updatedFilters = [
+          ...existingFilters,
+          {
+            filterType: filterModel.filterType,
+            type: filterModel.type,
+            filter: filterModel.filter, // Each filter is a separate object
+          },
+        ];
+  
         return {
           ...prevModel,
-          [field]: filterModel, // Override or add the new filter for the field
+          [field]: updatedFilters, // Save as an array of filter objects
         };
       });
   
@@ -122,6 +146,8 @@ const Home: React.FC = () => {
       gridRef.current.api.onFilterChanged();
     }
   };
+  
+  
   
   console.log('Incoming Filter Model:', floatingFilterModel);
 
