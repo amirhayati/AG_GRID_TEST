@@ -45,23 +45,26 @@ const Home: React.FC = () => {
 
   const applyFilterModel = (filterModel: any) => {
     if (gridRef.current) {
-      // Apply each filter to the grid
-      filterModel.conditions.forEach((condition: any) => {
-        gridRef.current.api.getFilterInstance(condition.field, (filterInstance: any) => {
-          const model = {
-            filterType: condition.filterType,
-            type: condition.type,
-            filter: condition.filter,
-          };
-          filterInstance.setModel(model);
-          filterInstance.onUiChanged();
+      // Apply each filter condition to the grid for multiple columns
+      filterModel.forEach((model: any) => {
+        model.conditions.forEach((condition: any) => {
+          gridRef.current.api.getFilterInstance(condition.field, (filterInstance: any) => {
+            const model = {
+              filterType: condition.filterType,
+              type: condition.type,
+              filter: condition.filter,
+            };
+            filterInstance.setModel(model);
+            filterInstance.onUiChanged();
+          });
         });
       });
-      
-      // Apply the filter model globally
+  
+      // Trigger the grid to apply the filters globally
       gridRef.current.api.onFilterChanged();
     }
   };
+  
 
   const handleFilterChange = (newFilterModel: any) => {
     setFloatingFilterModel(newFilterModel);
@@ -92,7 +95,7 @@ const Home: React.FC = () => {
 
   const handleFilterUpdate = (filterModel: any) => {
     console.log('Incoming Filter Model:', filterModel);
-    
+  
     if (filterModel && gridRef.current) {
       const field = filterModel.field;
   
@@ -108,15 +111,10 @@ const Home: React.FC = () => {
   
       // Update the floatingFilterModel in the state
       setFloatingFilterModel((prevModel: any) => {
-        // Ensure the existing field array is initialized
-        const updatedFieldModel = Array.isArray(prevModel[field]) ? prevModel[field] : [];
-  
-        // Append the new filter model to the array
-        updatedFieldModel.push(filterModel);
-  
+        // Keep existing filters for other fields intact
         return {
           ...prevModel,
-          [field]: updatedFieldModel, // Use the field name as the key
+          [field]: filterModel, // Override or add the new filter for the field
         };
       });
   
@@ -124,7 +122,6 @@ const Home: React.FC = () => {
       gridRef.current.api.onFilterChanged();
     }
   };
-  
   
   console.log('Incoming Filter Model:', floatingFilterModel);
 

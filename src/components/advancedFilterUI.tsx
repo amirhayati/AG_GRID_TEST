@@ -21,39 +21,29 @@ const AdvancedFilterUI = ({
 
   useEffect(() => {
     if (object && Object.keys(object).length > 0) {
-        const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => {
-            const { filterType, type } = filter;
-
-            // Create the condition from the filter model
-            const condition: Condition = {
-                field,
-                operator: operatorSymbols[type] || type,
-                type: filterType,
-                value: filter.filter || '',
-            };
-
-            // Handle specific filter types
-            if (filterType === 'date') {
-                condition.dateFrom = filter.dateFrom || '';
-            } else if (filterType === 'set') {
-                condition.value = filter.values[0] || '';
-                if (type === 'boolean') {
-                    condition.operator = operators.boolean[0].symbol;
-                }
-            } else if (filterType === 'multi') {
-                const validModels = filter.filterModels.filter((model) => model !== null);
-                condition.operator = validModels[0]?.type || '';
-                condition.value = validModels[0]?.filter || '';
-            }
-
-            return [condition];
-        });
-        setFilterGroups([{ logic: 'AND', conditions: newConditions }]);
+      // Loop through each field's filter model and create corresponding conditions
+      const newConditions = Object.entries(object).flatMap(([field, filter]: [string, any]) => {
+        const { filterType, type } = filter;
+  
+        // Create a condition for the current filter model
+        const condition: Condition = {
+          field,
+          operator: operatorSymbols[type] || type,
+          type: filterType,
+          value: filter.filter || '',
+        };
+  
+        return [condition];
+      });
+  
+      // Group the conditions by their logic (default to AND)
+      setFilterGroups([{ logic: 'AND', conditions: newConditions }]);
     } else {
-        setFilterGroups([initialFilterGroup]);
+      // Reset to initial group if no object
+      setFilterGroups([initialFilterGroup]);
     }
-  }, [object]); // Ensure this reacts to changes in the object prop
-
+  }, [object, columnData]);
+  
 
   const updateCondition = (
     groupIndex: number,
@@ -138,8 +128,12 @@ const AdvancedFilterUI = ({
 
   const handleSubmit = () => {
     const filterData = getChangedFilterData();
-    onFilterChange(filterData); // Send filter data to parent (App.js)
-    changeVisible(false); // Close the modal after submission
+    
+    // Pass the filter data back to the parent
+    onFilterChange(filterData); 
+  
+    // Close the modal after submission
+    changeVisible(false); 
   };
 
   return (

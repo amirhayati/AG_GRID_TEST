@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { IFilterComp } from 'ag-grid-community';
 
-interface CustomInputFloatingFilterProps extends IFilterComp {
-  updateFilter: (filterModel: any) => void; // Add a prop for updating filter
+interface CustomInputFloatingFilterProps {
+  updateFilter: (filterModel: any) => void;
+  column: any; // Assuming this contains column data like `colId`
 }
 
 const CustomInputFloatingFilter: React.FC<CustomInputFloatingFilterProps> = (props) => {
@@ -30,8 +31,8 @@ const CustomInputFloatingFilter: React.FC<CustomInputFloatingFilterProps> = (pro
       // Only update if there is a value
       if (value) {
         const filterModel = {
-          field: props.column.colId, // Ensure you're using the correct field identifier
-          filterType: 'text',        // Ensure this matches your filter type
+          field: props.column.colId, // Use the correct column identifier
+          filterType: 'text',        // Ensure this matches the column's filter type
           type: 'contains',          // Filter type for the condition
           filter: value              // The input value
         };
@@ -49,9 +50,6 @@ const CustomInputFloatingFilter: React.FC<CustomInputFloatingFilterProps> = (pro
       }
     }
   };
-  
-  
-  
   
 
   useEffect(() => {
