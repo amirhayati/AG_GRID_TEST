@@ -8,14 +8,18 @@ import { SidebarItemTypes } from '../../type/sideBar/type.tsx';
 const Sidebar = () => {
     const [isSidebarOpen, setSidebarOpen] = useState<boolean>(false);
     const [selectedLeftItem, setSelectedLeftItem] = useState<string>(leftSideItems[0].label);
+    const [defaultsidebarValues, setDefaultSidebarValues] = useState<SidebarItemTypes[]>([]);
     const [sidebarValues, setSidebarValues] = useState<SidebarItemTypes[]>([]);
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
+    // Update SidebarItems list after leftSideItems change 
     useEffect(() => {
-        setSidebarValues([])
+        setSidebarValues([]);
+        setDefaultSidebarValues([]);
         for (let i = 0; i < sidebarItems.length; i++) {
             if(sidebarItems[i].leftSideId === selectedLeftItem){
                 setSidebarValues(prevState => [...prevState, sidebarItems[i]]);
+                setDefaultSidebarValues(prevState => [...prevState, sidebarItems[i]]);
 
                 setOpenSections((prevState) => ({
                     ...prevState,
@@ -24,7 +28,20 @@ const Sidebar = () => {
             }
         }
     }, [selectedLeftItem]);
+
+    // Handle the search functionality
+    const handleSearch = (searchTerm: string) => {
+        if (searchTerm === "") {
+            setSidebarValues(defaultsidebarValues);  // Reset to all sidebar items when search is cleared
+        } else {
+            const filtered = sidebarItems.filter(item => 
+                item.title.toLowerCase().includes(searchTerm.toLowerCase())  // Filter by title
+            );
+            setSidebarValues(filtered);
+        }
+    };
     
+    // Toggle SidebarItems list
     const toggleSection = (section) => {
         setOpenSections((prevState) => ({
             ...prevState,
@@ -32,6 +49,7 @@ const Sidebar = () => {
         }));
     };
 
+    // Toggle SideBar
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
     };
@@ -39,7 +57,10 @@ const Sidebar = () => {
     return (
         <div className="w-1/4 min-w-[17rem] max-w-[20rem] h-screen p-2 fixed overflow-y-scroll scrollbar-thin-custom">
             {/* Search Box */}
-            <SideBarSearch toggleSidebar={toggleSidebar} />
+            <SideBarSearch 
+                toggleSidebar={toggleSidebar} 
+                handleSearch={handleSearch}
+            />
 
             {/* Sidebar Items */}
             <SidebarItems

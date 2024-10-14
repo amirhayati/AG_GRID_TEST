@@ -10,6 +10,7 @@ export interface LeftSidePropsTypes {
 
 export interface SideBarSearchPropsTypes {
     toggleSidebar: () => void;
+    handleSearch:(searchTerm: string) => void
 }
 
 export interface LeftSideItemTypes {
