@@ -57,12 +57,12 @@
 
 /* Hide the floating filter button */
 .ag-floating-filter-button-button {
-    display: none !important;
+    /* display: none !important; */
   }
   
   /* Optional: Hide the filter icon if it's still visible */
   .ag-icon-filter {
-    display: none !important;
+    /* display: none !important; */
   }
 
 /* .filter-condition-selections > select:first-child {
