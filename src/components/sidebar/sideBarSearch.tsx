@@ -2,7 +2,7 @@ import React from 'react'
 import { FiSearch } from 'react-icons/fi'
 import { IoIosArrowForward } from 'react-icons/io'
 
-const SideBarSearch = (toggleSidebar) => {
+const SideBarSearch = ({toggleSidebar}) => {
         return (
             <div className="flex items-center gap-2 ml-2 mb-2 h-8">
                 <button

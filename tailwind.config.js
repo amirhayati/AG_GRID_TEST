@@ -26,6 +26,15 @@ module.exports = {
           '&::-webkit-scrollbar-track': {
             backgroundColor: 'rgba(0, 0, 0, 0.1)',
           },
+            '.writing-vertical-rl': {
+            'writing-mode': 'vertical-rl',
+          },
+            '.writing-vertical-lr': {
+            'writing-mode': 'vertical-lr',
+          },
+            '.text-orientation-mixed': {
+            'text-orientation': 'mixed',
+          },
         },
       });
     },
