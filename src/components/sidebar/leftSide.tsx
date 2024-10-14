@@ -1,7 +1,8 @@
 import React from 'react'
 import { IoIosArrowBack } from 'react-icons/io'
+import { LeftSidePropsTypes } from '../../type/sideBar/type';
 
-const LeftSide = ({leftSideItems, toggleSidebar, isSidebarOpen, selectedLeftItem, setSelectedLeftItem}) => {
+const LeftSide = ({leftSideItems, toggleSidebar, isSidebarOpen, selectedLeftItem, setSelectedLeftItem}:LeftSidePropsTypes) => {
 
     const handleSelectLeftItem = (item) => {
         setSelectedLeftItem(item);

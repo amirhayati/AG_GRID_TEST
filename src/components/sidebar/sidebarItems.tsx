@@ -1,7 +1,8 @@
 import React from 'react';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import { SidebarItemsPropsTypes } from '../../type/sideBar/type';
 
-const SidebarItems = ({ sidebarItems, openSections, toggleSection }) => {
+const SidebarItems = ({ sidebarItems, openSections, toggleSection } : SidebarItemsPropsTypes) => {
     return (
         <>
             {sidebarItems.map((section) => (

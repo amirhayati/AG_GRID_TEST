@@ -1,8 +1,9 @@
 import React from 'react'
 import { FiSearch } from 'react-icons/fi'
 import { IoIosArrowForward } from 'react-icons/io'
+import { SideBarSearchPropsTypes } from '../../type/sideBar/type'
 
-const SideBarSearch = ({toggleSidebar}) => {
+const SideBarSearch = ({toggleSidebar}:SideBarSearchPropsTypes) => {
         return (
             <div className="flex items-center gap-2 ml-2 mb-2 h-8">
                 <button

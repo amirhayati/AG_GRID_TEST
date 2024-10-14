@@ -3,12 +3,13 @@ import { sidebarItems, leftSideItems } from './sidebarData';
 import SidebarItems from './sidebarItems.tsx';
 import SideBarSearch from './sideBarSearch.tsx';
 import LeftSide from './leftSide.tsx';
+import { SidebarItemTypes } from '../../type/sideBar/type.tsx';
 
 const Sidebar = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [selectedLeftItem, setSelectedLeftItem] = useState(leftSideItems[0].label);
-    const [sidebarValues, setSidebarValues] = useState([]);
-    const [openSections, setOpenSections] = useState({});
+    const [isSidebarOpen, setSidebarOpen] = useState<boolean>(false);
+    const [selectedLeftItem, setSelectedLeftItem] = useState<string>(leftSideItems[0].label);
+    const [sidebarValues, setSidebarValues] = useState<SidebarItemTypes[]>([]);
+    const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         setSidebarValues([])
@@ -34,9 +35,9 @@ const Sidebar = () => {
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
     };
-    console.log(sidebarValues)
+    
     return (
-        <div className="w-1/4 min-w-[17rem] max-w-[20rem] bg-gray-100 h-screen p-2 fixed overflow-y-scroll scrollbar-thin-custom">
+        <div className="w-1/4 min-w-[17rem] max-w-[20rem] h-screen p-2 fixed overflow-y-scroll scrollbar-thin-custom">
             {/* Search Box */}
             <SideBarSearch toggleSidebar={toggleSidebar} />
 
