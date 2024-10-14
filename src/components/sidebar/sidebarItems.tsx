@@ -20,7 +20,7 @@ const SidebarItems = ({ sidebarItems, openSections, toggleSection }) => {
                     </button>
 
                     {openSections[section.id] && section.items.length > 0 && (
-                        <div className="ml-6">
+                        <div className="ml-6 mb-4">
                             {section.items.map((item, id) => (
                                 <div key={id} className="relative flex items-center pl-4 group">
                                     <span
